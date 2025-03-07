@@ -128,6 +128,24 @@ function avoidOthers(boid) {
   boid.dy += moveY * avoidFactor;
 }
 
+// Move away from predators that are too close to the boid to avoid being caught
+function avoidPredators(boid) {
+  const avoidFactor = 0.05;
+  let moveX = 0;
+  let moveY = 0;
+  for (let predator of predators){
+    for (let boid of boids) {
+      if (distance(boid,predator) < visualRangeBoids) {
+        moveX += boid.X - predator.x;
+        moveY += boid.Y - predator.y;
+      }
+    }
+  }
+  
+  boid.dx += moveX * avoidFactor;
+  boid.dy += moveY * avoidFactor;
+}
+
 // Find the average velocity (speed and direction) of the other boids and
 // adjust velocity slightly to match.
 function matchVelocity(boid) {
