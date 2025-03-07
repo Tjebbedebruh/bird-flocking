@@ -3,9 +3,14 @@ let width = 150;
 let height = 150;
 
 const numBoids = 100;
-const visualRange = 75;
+const visualRangeBoid = 75;
+const visualRangePreditor = 100;
+
+const numPreditors = 1;
+const DRAW_TRAIL = false;
 
 var boids = [];
+var preditors = [];
 
 function initBoids() {
   for (var i = 0; i < numBoids; i += 1) {
@@ -14,7 +19,19 @@ function initBoids() {
       y: Math.random() * height,
       dx: Math.random() * 10 - 5,
       dy: Math.random() * 10 - 5,
-      history: [],
+      history: [],  // For drawing the trail	
+    };
+  }
+}
+
+function initPreditors() {
+  for (var i = 0; i < numPreditors; i += 1) {
+    preditors[preditors.length] = {
+      x: Math.random() * width,
+      y: Math.random() * height,
+      dx: Math.random() * 10 - 5,
+      dy: Math.random() * 10 - 5,
+      history: [],  // For drawing the trail
     };
   }
 }
@@ -26,7 +43,7 @@ function distance(boid1, boid2) {
   );
 }
 
-// TODO: This is naive and inefficient.
+
 function nClosestBoids(boid, n) {
   // Make a copy
   const sorted = boids.slice();
@@ -76,7 +93,7 @@ function flyTowardsCenter(boid) {
   let numNeighbors = 0;
 
   for (let otherBoid of boids) {
-    if (distance(boid, otherBoid) < visualRange) {
+    if (distance(boid, otherBoid) < visualRangeBoid) {
       centerX += otherBoid.x;
       centerY += otherBoid.y;
       numNeighbors += 1;
@@ -121,7 +138,7 @@ function matchVelocity(boid) {
   let numNeighbors = 0;
 
   for (let otherBoid of boids) {
-    if (distance(boid, otherBoid) < visualRange) {
+    if (distance(boid, otherBoid) < visualRangeBoid) {
       avgDX += otherBoid.dx;
       avgDY += otherBoid.dy;
       numNeighbors += 1;
@@ -149,7 +166,21 @@ function limitSpeed(boid) {
   }
 }
 
-const DRAW_TRAIL = false;
+function drawPreditor(ctx, preditor) {
+  const angle = Math.atan2(preditor.dy, preditor.dx);
+  ctx.translate(preditor.x, preditor.y);
+  ctx.rotate(angle);
+  ctx.translate(-preditor.x, -preditor.y);
+  ctx.fillStyle = "#ff0000";
+  ctx.beginPath();
+  ctx.moveTo(preditor.x, preditor.y);
+  ctx.lineTo(preditor.x - 15, preditor.y + 5);
+  ctx.lineTo(preditor.x - 15, preditor.y - 5);
+  ctx.lineTo(preditor.x, preditor.y);
+  ctx.fill();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
 
 function drawBoid(ctx, boid) {
   const angle = Math.atan2(boid.dy, boid.dx);
@@ -200,6 +231,9 @@ function animationLoop() {
   for (let boid of boids) {
     drawBoid(ctx, boid);
   }
+  for (let preditor of preditors) {
+    drawPreditor(ctx, preditor);
+  }
 
   // Schedule the next frame
   window.requestAnimationFrame(animationLoop);
@@ -212,6 +246,7 @@ window.onload = () => {
 
   // Randomly distribute the boids to start
   initBoids();
+  initPreditors();
 
   // Schedule the main animation loop
   window.requestAnimationFrame(animationLoop);
