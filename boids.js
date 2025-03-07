@@ -8,6 +8,7 @@ const visualRangePredator = 100;
 
 const numPredators = 1;
 const DRAW_TRAIL = false;
+const strategy = "closest";
 
 var boids = [];
 var predators = [];
@@ -27,10 +28,10 @@ function initBoids() {
 function initPredators() {
   for (var i = 0; i < numPredators; i += 1) {
     predators[predators.length] = {
-      x: width / 2,
-      y: height / 2,
-      dx: 10 - 5,
-      dy: 10 - 5,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      dx: Math.random() * 10 - 5,
+      dy: Math.random() * 10 - 5,
       history: [],  // For drawing the trail
     };
   }
@@ -53,6 +54,27 @@ function nClosestBoids(boid, n) {
   return sorted.slice(1, n + 1);
 }
 
+// Returns the boid that is closest to the given predator
+function predatorsClosestBoid(predator) {
+  // Make a copy
+  const sorted = boids.slice();
+  // Sort the copy by distance from predator to boid
+  sorted.sort((a, b) => distance(predator, a) - distance(predator, b));
+  // Return the closest boid
+  return sorted[0];
+}
+
+function chaseClosestBoid(predator){
+  const boid = predatorsClosestBoid(predator);
+  const chaseFactor = 0.05; // Adjust velocity by this %
+
+  const moveX = boid.x - predator.x;
+  const moveY = boid.y - predator.y;
+ 
+  predator.dx += moveX * chaseFactor;
+  predator.dy += moveY * chaseFactor;
+}
+
 // Called initially and whenever the window resizes to update the canvas
 // size and width/height variables.
 function sizeCanvas() {
@@ -63,23 +85,24 @@ function sizeCanvas() {
   canvas.height = height;
 }
 
-// Constrain a boid to within the window. If it gets too close to an edge,
+// Constrain a bird to within the window. If it gets too close to an edge,
 // nudge it back in and reverse its direction.
-function keepWithinBounds(boid) {
+function keepWithinBounds(bird) {
+  
   const margin = 200;
-  const turnFactor = 1;
+  const turnFactor = 3;
 
-  if (boid.x < margin) {
-    boid.dx += turnFactor;
+  if (bird.x < margin) {
+    bird.dx += turnFactor;
   }
-  if (boid.x > width - margin) {
-    boid.dx -= turnFactor
+  if (bird.x > width - margin) {
+    bird.dx -= turnFactor
   }
-  if (boid.y < margin) {
-    boid.dy += turnFactor;
+  if (bird.y < margin) {
+    bird.dy += turnFactor;
   }
-  if (boid.y > height - margin) {
-    boid.dy -= turnFactor;
+  if (bird.y > height - margin) {
+    bird.dy -= turnFactor;
   }
 }
 
@@ -172,13 +195,13 @@ function matchVelocity(boid) {
 
 // Speed will naturally vary in flocking behavior, but real animals can't go
 // arbitrarily fast.
-function limitSpeed(boid) {
-  const speedLimit = 15;
+function limitSpeed(bird) {
+  const speedLimit = 15; // initial value was 15
 
-  const speed = Math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy);
+  const speed = Math.sqrt(bird.dx * bird.dx + bird.dy * bird.dy);
   if (speed > speedLimit) {
-    boid.dx = (boid.dx / speed) * speedLimit;
-    boid.dy = (boid.dy / speed) * speedLimit;
+    bird.dx = (bird.dx / speed) * speedLimit;
+    bird.dy = (bird.dy / speed) * speedLimit;
   }
 }
 
@@ -232,14 +255,32 @@ function animationLoop() {
     avoidOthers(boid);
     avoidPredators(boid);
     matchVelocity(boid);
-    limitSpeed(boid);
     keepWithinBounds(boid);
+    limitSpeed(boid);
 
     // Update the position based on the current velocity
     boid.x += boid.dx;
     boid.y += boid.dy;
     boid.history.push([boid.x, boid.y])
     boid.history = boid.history.slice(-50);
+  }
+  for (let predator of predators){
+    if (strategy == "closest") {
+      chaseClosestBoid(predator);
+      keepWithinBounds(predator);
+      limitSpeed(predator);
+
+      // Update the position based on the current velocity
+      predator.x += predator.dx;
+      predator.y += predator.dy;
+      predator.history.push([predator.x, predator.y])
+      predator.history = predator.history.slice(-50);
+    }
+  }
+
+  // Remove a captured boid from boids
+  for(let predator of predators){
+    boids = boids.filter(boid => distance(predator, boid) >= 5);
   }
 
   // Clear the canvas and redraw all the boids in their current positions
@@ -252,8 +293,11 @@ function animationLoop() {
     drawPredator(ctx, predator);
   }
 
-  // Schedule the next frame
-  window.requestAnimationFrame(animationLoop);
+  // Schedule the next frame when no boid has been captured
+  if (boids.length = numBoids){
+    window.requestAnimationFrame(animationLoop);
+
+  }
 }
 
 window.onload = () => {
