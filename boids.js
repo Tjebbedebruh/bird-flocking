@@ -3,7 +3,7 @@ let width = 150;
 let height = 150;
 
 const numBoids = 100;
-const visualRange = 75;
+const visualRangeBoids = 75;
 
 var boids = [];
 
@@ -76,7 +76,7 @@ function flyTowardsCenter(boid) {
   let numNeighbors = 0;
 
   for (let otherBoid of boids) {
-    if (distance(boid, otherBoid) < visualRange) {
+    if (distance(boid, otherBoid) < visualRangeBoids) {
       centerX += otherBoid.x;
       centerY += otherBoid.y;
       numNeighbors += 1;
@@ -111,6 +111,24 @@ function avoidOthers(boid) {
   boid.dy += moveY * avoidFactor;
 }
 
+// Move away from predators that are too close to the boid to avoid being caught
+function avoidPredators(boid) {
+  const avoidFactor = 0.05;
+  let moveX = 0;
+  let moveY = 0;
+  for (let predator of predators){
+    for (let boid of boids) {
+      if (distance(boid,predator) < visualRangeBoids) {
+        moveX += boid.X - predator.x;
+        moveY += boid.Y - predator.y;
+      }
+    }
+  }
+  
+  boid.dx += moveX * avoidFactor;
+  boid.dy += moveY * avoidFactor;
+}
+
 // Find the average velocity (speed and direction) of the other boids and
 // adjust velocity slightly to match.
 function matchVelocity(boid) {
@@ -121,7 +139,7 @@ function matchVelocity(boid) {
   let numNeighbors = 0;
 
   for (let otherBoid of boids) {
-    if (distance(boid, otherBoid) < visualRange) {
+    if (distance(boid, otherBoid) < visualRangeBoids) {
       avgDX += otherBoid.dx;
       avgDY += otherBoid.dy;
       numNeighbors += 1;

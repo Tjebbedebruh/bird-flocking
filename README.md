@@ -29,7 +29,7 @@ Finally, each boid tries to match the vector (speed and direction) of the other 
 
 ## Visual range
 
-There are a ton of ways to extend this simple model to better simulate the behavior of different animals. An example I showed in the video is to limit the "visual range" of each boid. Real animals can't see the entire flock; they can only see the other animals around them. By adjusting the `visualRange` variable, you can adjust how far each boid can "see"—that is which other boids it considers when applying the three rules above.
+There are a ton of ways to extend this simple model to better simulate the behavior of different animals. An example I showed in the video is to limit the "visual range" of each boid. Real animals can't see the entire flock; they can only see the other animals around them. By adjusting the `visualRangeBoids` variable, you can adjust how far each boid can "see"—that is which other boids it considers when applying the three rules above.
 
 ## How do I run this code?
 
