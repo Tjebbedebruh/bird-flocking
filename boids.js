@@ -4,13 +4,13 @@ let height = 150;
 
 const numBoids = 100;
 const visualRangeBoid = 75;
-const visualRangePreditor = 100;
+const visualRangePredator = 100;
 
-const numPreditors = 1;
+const numPredators = 1;
 const DRAW_TRAIL = false;
 
 var boids = [];
-var preditors = [];
+var predators = [];
 
 function initBoids() {
   for (var i = 0; i < numBoids; i += 1) {
@@ -24,13 +24,13 @@ function initBoids() {
   }
 }
 
-function initPreditors() {
-  for (var i = 0; i < numPreditors; i += 1) {
-    preditors[preditors.length] = {
-      x: Math.random() * width,
-      y: Math.random() * height,
-      dx: Math.random() * 10 - 5,
-      dy: Math.random() * 10 - 5,
+function initPredators() {
+  for (var i = 0; i < numPredators; i += 1) {
+    predators[predators.length] = {
+      x: width / 2,
+      y: height / 2,
+      dx: 10 - 5,
+      dy: 10 - 5,
       history: [],  // For drawing the trail
     };
   }
@@ -130,18 +130,16 @@ function avoidOthers(boid) {
 
 // Move away from predators that are too close to the boid to avoid being caught
 function avoidPredators(boid) {
-  const avoidFactor = 0.05;
+  const avoidFactor = 0.05; // Adjust velocity by this %
   let moveX = 0;
   let moveY = 0;
-  for (let predator of predators){
-    for (let boid of boids) {
-      if (distance(boid,predator) < visualRangeBoids) {
-        moveX += boid.X - predator.x;
-        moveY += boid.Y - predator.y;
-      }
+  for (let predator of predators) {
+    if (distance(boid, predator) < visualRangeBoid) {
+      moveX += boid.x - predator.x;
+      moveY += boid.y - predator.y;
     }
   }
-  
+
   boid.dx += moveX * avoidFactor;
   boid.dy += moveY * avoidFactor;
 }
@@ -184,17 +182,17 @@ function limitSpeed(boid) {
   }
 }
 
-function drawPreditor(ctx, preditor) {
-  const angle = Math.atan2(preditor.dy, preditor.dx);
-  ctx.translate(preditor.x, preditor.y);
+function drawPredator(ctx, predator) {
+  const angle = Math.atan2(predator.dy, predator.dx);
+  ctx.translate(predator.x, predator.y);
   ctx.rotate(angle);
-  ctx.translate(-preditor.x, -preditor.y);
+  ctx.translate(-predator.x, -predator.y);
   ctx.fillStyle = "#ff0000";
   ctx.beginPath();
-  ctx.moveTo(preditor.x, preditor.y);
-  ctx.lineTo(preditor.x - 15, preditor.y + 5);
-  ctx.lineTo(preditor.x - 15, preditor.y - 5);
-  ctx.lineTo(preditor.x, preditor.y);
+  ctx.moveTo(predator.x, predator.y);
+  ctx.lineTo(predator.x - 15, predator.y + 5);
+  ctx.lineTo(predator.x - 15, predator.y - 5);
+  ctx.lineTo(predator.x, predator.y);
   ctx.fill();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
@@ -232,6 +230,7 @@ function animationLoop() {
     // Update the velocities according to each rule
     flyTowardsCenter(boid);
     avoidOthers(boid);
+    avoidPredators(boid);
     matchVelocity(boid);
     limitSpeed(boid);
     keepWithinBounds(boid);
@@ -249,8 +248,8 @@ function animationLoop() {
   for (let boid of boids) {
     drawBoid(ctx, boid);
   }
-  for (let preditor of preditors) {
-    drawPreditor(ctx, preditor);
+  for (let predator of predators) {
+    drawPredator(ctx, predator);
   }
 
   // Schedule the next frame
@@ -264,7 +263,7 @@ window.onload = () => {
 
   // Randomly distribute the boids to start
   initBoids();
-  initPreditors();
+  initPredators();
 
   // Schedule the main animation loop
   window.requestAnimationFrame(animationLoop);
