@@ -2,16 +2,54 @@
 let width = 150;
 let height = 150;
 
-const numBoids = 100;
-const visualRangeBoid = 75;
-const visualRangePredator = 100;
+const Strategy = Object.freeze({ // enum
+  CLOSEST: "closest",
+  PERSUIT: "persuit",
+  AMBUSH: "ambush",
+});
+var currentStrategy = Strategy.CLOSEST;
 
-const numPredators = 1;
-const DRAW_TRAIL = false;
-const strategy = "closest";
+let numBoids = 100;
+let visualRangeBoid = 75;
+let visualRangePredator = 100;
+let speedLimit = 15; 
+
+let numPredators = 1;
+let DRAW_TRAIL = false;
 
 var boids = [];
 var predators = [];
+
+/*********** Settings Menu ***********/
+const settingsMenu = document.getElementById("settings-menu");
+const settingsToggle = document.getElementById("settings-toggle");
+
+const predatorSpeedSelect  = document.getElementById("predatorSpeedInput");
+const numBoidsSelect = document.getElementById("numBoidsInput");
+const strategySelect = document.getElementById("strategy-select");
+
+let settingsOpen = false; 
+
+settingsToggle.addEventListener("click", () => {
+  settingsMenu.style.display = settingsOpen ? "none" : "flex";
+  settingsOpen = !settingsOpen;
+});
+
+numBoidsSelect.addEventListener("change", () => {
+  console.log("numBoidsSelect.value: ", numBoidsSelect.value);
+  numBoids = parseInt(numBoidsSelect.value);
+  resetAnimation();
+});
+
+predatorSpeedSelect.addEventListener("change", () => {
+  speedLimit = parseInt(predatorSpeedSelect.value);
+});
+
+/* strategySelect.addEventListener("change", () => { // TODO: uncomment this after implmenting all the other strategies
+  currentStrategy = strategySelect.value;
+}); */
+
+/************ Model ***********/
 
 function initBoids() {
   for (var i = 0; i < numBoids; i += 1) {
@@ -28,10 +66,10 @@ function initBoids() {
 function initPredators() {
   for (var i = 0; i < numPredators; i += 1) {
     predators[predators.length] = {
-      x: Math.random() * width,
-      y: Math.random() * height,
-      dx: Math.random() * 10 - 5,
-      dy: Math.random() * 10 - 5,
+      x: width / 2,
+      y: height / 2,
+      dx: 10 - 5,
+      dy: 10 - 5,
       history: [],  // For drawing the trail
     };
   }
@@ -196,8 +234,6 @@ function matchVelocity(boid) {
 // Speed will naturally vary in flocking behavior, but real animals can't go
 // arbitrarily fast.
 function limitSpeed(bird) {
-  const speedLimit = 15; // initial value was 15
-
   const speed = Math.sqrt(bird.dx * bird.dx + bird.dy * bird.dy);
   if (speed > speedLimit) {
     bird.dx = (bird.dx / speed) * speedLimit;
@@ -264,8 +300,9 @@ function animationLoop() {
     boid.history.push([boid.x, boid.y])
     boid.history = boid.history.slice(-50);
   }
+
   for (let predator of predators){
-    if (strategy == "closest") {
+    if (currentStrategy == Strategy.CLOSEST){ 
       chaseClosestBoid(predator);
       keepWithinBounds(predator);
       limitSpeed(predator);
@@ -277,7 +314,7 @@ function animationLoop() {
       predator.history = predator.history.slice(-50);
     }
   }
-
+  
   // Remove a captured boid from boids
   for(let predator of predators){
     boids = boids.filter(boid => distance(predator, boid) >= 5);
@@ -293,12 +330,21 @@ function animationLoop() {
     drawPredator(ctx, predator);
   }
 
-  // Schedule the next frame when no boid has been captured
-  if (boids.length = numBoids){
+  /* // Schedule the next frame when no boid has been captured // TODO: removed for settings menu testing. Can be returned later
+  if (boids.length === numBoids){
     window.requestAnimationFrame(animationLoop);
+  } */
 
-  }
+    window.requestAnimationFrame(animationLoop);
 }
+
+function resetAnimation () {
+  boids = [];
+  predators = [];
+  initBoids();
+  initPredators();
+}
+
 
 window.onload = () => {
   // Make sure the canvas always fills the whole window

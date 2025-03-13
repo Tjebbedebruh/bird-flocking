@@ -3,16 +3,28 @@
   <head>
     <meta charset="utf-8"/>
     <title>Boids</title>
-    <script src="./boids.js"></script>
-    <style type="text/css">
-      body {
-        margin: 0;
-        background: #282c34;
-        overflow: hidden;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+
   </head>
   <body>
+    <button id="settings-toggle">⚙️ Settings</button>
+    <div id="settings-menu">
+        <label>Number of Boids: </label>
+        <input id="numBoidsInput" type="range" min="0" max="500" value="100">
+
+        <label>Predator Speed: </label>
+        <input id="predatorSpeedInput" type="range" min="3" max="25" value="15">
+
+        <label>Strategy: </label>
+        <select id="strategySelect">
+          <option value="closest">Closest</option>
+          <option value="persuit">Persuit</option>
+          <option value="ambush">Ambush</option>
+        </select>
+    </div>
+
     <canvas id="boids" width="150" height="150"></canvas>
+
+    <script src="./boids.js"></script>
   </body>
 </html>
