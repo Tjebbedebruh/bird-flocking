@@ -104,8 +104,8 @@ function initPredators() {
     predators[predators.length] = {
       x: width / 2,
       y: height / 2,
-      dx: 10 - 5,
-      dy: 10 - 5,
+      dx: Math.random() * 10 - 5,
+      dy: Math.random() * 10 - 5,
       history: [],  // For drawing the trail
     };
   }
@@ -128,17 +128,35 @@ function nClosestBoids(boid, n) {
   return sorted.slice(1, n + 1);
 }
 
-// Returns the boid that is closest to the given predator
-function predatorsClosestBoid(predator) {
-  // Make a copy
-  const sorted = boids.slice();
-  // Sort the copy by distance from predator to boid
-  sorted.sort((a, b) => distance(predator, a) - distance(predator, b));
-  // Return the closest boid
-  return sorted[0];
+function chaseAmbush(predator){
+  const boid = predatorsClosestBoid(predator);
+  const chaseFactor = 0.05; // Adjust velocity by this %
+
+  let moveX = 0;
+  let moveY = 0;
+
+  if (distance(boid,predator) < 75){
+    moveX = boid.x - predator.x;
+    moveY = boid.y - predator.y; 
+  }
+  predator.dx += moveX * chaseFactor;
+  predator.dy += moveY * chaseFactor;
 }
 
-function chaseClosestBoid(predator){
+let randomBoid = Math.floor(Math.random() * boids.length);
+
+function chasePersuit(predator){
+  const boid = boids[randomBoid];
+  const chaseFactor = 0.05; // Adjust velocity by this %
+
+  const moveX = boid.x - predator.x;
+  const moveY = boid.y - predator.y;
+ 
+  predator.dx += moveX * chaseFactor;
+  predator.dy += moveY * chaseFactor;
+}
+
+function chaseCloses(predator){
   const boid = predatorsClosestBoid(predator);
   const chaseFactor = 0.05; // Adjust velocity by this %
 
@@ -147,6 +165,16 @@ function chaseClosestBoid(predator){
  
   predator.dx += moveX * chaseFactor;
   predator.dy += moveY * chaseFactor;
+}
+
+// Returns the boid that is closest to the given predator
+function predatorsClosestBoid(predator) {
+  // Make a copy
+  const sorted = boids.slice();
+  // Sort the copy by distance from predator to boid
+  sorted.sort((a, b) => distance(predator, a) - distance(predator, b));
+  // Return the closest boid
+  return sorted[0];
 }
 
 // Called initially and whenever the window resizes to update the canvas
@@ -335,16 +363,23 @@ function animationLoop() {
 
   for (let predator of predators){
     if (currentStrategy == Strategy.CLOSEST){ 
-      chaseClosestBoid(predator);
-      keepWithinBounds(predator);
-      limitSpeed(predator);
-
-      // Update the position based on the current velocity
-      predator.x += predator.dx;
-      predator.y += predator.dy;
-      predator.history.push([predator.x, predator.y])
-      predator.history = predator.history.slice(-50);
+      chaseCloses(predator);
     }
+    else if (currentStrategy == Strategy.PERSUIT){
+      chasePersuit(predator);
+    }
+    else if (currentStrategy == Strategy.AMBUSH){
+      chaseAmbush(predator);
+    }
+
+    keepWithinBounds(predator);
+    limitSpeed(predator);
+
+    // Update the position based on the current velocity
+    predator.x += predator.dx;
+    predator.y += predator.dy;
+    predator.history.push([predator.x, predator.y])
+    predator.history = predator.history.slice(-50);
   }
   
   // Remove a captured boid from boids
@@ -362,10 +397,10 @@ function animationLoop() {
     drawPredator(ctx, predator);
   }
 
-  /* // Schedule the next frame when no boid has been captured // TODO: removed for settings menu testing. Can be returned later
-  if (boids.length === numBoids){
-    window.requestAnimationFrame(animationLoop);
-  } */
+  // Schedule the next frame when no boid has been captured // TODO: removed for settings menu testing. Can be returned later
+  // if (boids.length === numBoids){
+  //   window.requestAnimationFrame(animationLoop);
+  // } 
 
     window.requestAnimationFrame(animationLoop);
 }
