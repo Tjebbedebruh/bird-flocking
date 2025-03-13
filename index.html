@@ -10,10 +10,25 @@
     <button id="settings-toggle">⚙️ Settings</button>
     <div id="settings-menu">
         <label>Number of Boids: </label>
-        <input id="numBoidsInput" type="range" min="0" max="500" value="100">
+        <input id="numBoidsSelect" type="range" min="0" max="500" value="100">
 
-        <label>Predator Speed: </label>
-        <input id="predatorSpeedInput" type="range" min="3" max="25" value="15">
+        <label>Coherence: </label>
+        <input id="coherenceSelect" type="range" min="0" max="100" value="50">
+
+        <label>Seperation: </label>
+        <input id="seperationSelect" type="range" min="0" max="30" value="20">
+
+        <label>Alignment: </label>
+        <input id="alignmentSelect" type="range" min="0" max="100" value="50">
+
+        <label>Visual range boid: </label>
+        <input id="visualRangeBoidSelect" type="range" min="0" max="250" value="75">
+
+        <label>Visual range predator: </label>
+        <input id="visualRangePredatorSelect" type="range" min="0" max="250" value="75">
+
+        <label>bird Speed: </label>
+        <input id="birdSpeedSelect" type="range" min="3" max="25" value="15">
 
         <label>Strategy: </label>
         <select id="strategySelect">

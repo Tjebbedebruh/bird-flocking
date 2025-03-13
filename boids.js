@@ -9,10 +9,14 @@ const Strategy = Object.freeze({ // enum
 });
 var currentStrategy = Strategy.CLOSEST;
 
-let numBoids = 100;
-let visualRangeBoid = 75;
-let visualRangePredator = 100;
-let speedLimit = 15; 
+let numBoids = 100; // Amount of Boids on the canvas
+let visualRangeBoid = 75; // Visual range of the boids
+let visualRangePredator = 100; // Visual range of the predators
+let speedLimit = 15;  // Speed limit of the birds
+let minDistance = 20; // Minimum distance between boids
+let centeringFactor = 0.005; // Determines the coherence between boids 
+let matchingFactor = 0.05; // Determines the alignment between boids 
+
 
 let numPredators = 1;
 let DRAW_TRAIL = false;
@@ -23,26 +27,58 @@ var predators = [];
 /*********** Settings Menu ***********/
 const settingsMenu = document.getElementById("settings-menu");
 const settingsToggle = document.getElementById("settings-toggle");
-
-const predatorSpeedSelect  = document.getElementById("predatorSpeedInput");
-const numBoidsSelect = document.getElementById("numBoidsInput");
-const strategySelect = document.getElementById("strategy-select");
-
 let settingsOpen = false; 
 
+const numBoidsSelect = document.getElementById("numBoidsSelect");
+const coherenceSelect = document.getElementById("coherenceSelect"); 
+const seperationSelect = document.getElementById("seperationSelect");
+const alignmentSelect = document.getElementById("alignmentSelect");
+const visualRangeBoidSelect = document.getElementById("visualRangeBoidSelect");
+const visualRangePredatorSelect = document.getElementById("visualRangePredatorSelect");
+const birdSpeedSelect  = document.getElementById("birdSpeedSelect");
+const strategySelect = document.getElementById("strategySelect");
+
+// Settings menu toggle
 settingsToggle.addEventListener("click", () => {
   settingsMenu.style.display = settingsOpen ? "none" : "flex";
   settingsOpen = !settingsOpen;
 });
 
+// Number of boids
 numBoidsSelect.addEventListener("change", () => {
   console.log("numBoidsSelect.value: ", numBoidsSelect.value);
   numBoids = parseInt(numBoidsSelect.value);
   resetAnimation();
 });
 
-predatorSpeedSelect.addEventListener("change", () => {
-  speedLimit = parseInt(predatorSpeedSelect.value);
+// Coherence 
+coherenceSelect.addEventListener("change", () => {
+  centeringFactor = parseFloat(coherenceSelect.value/10000);
+});
+
+// Seperation
+seperationSelect.addEventListener("change", () => {
+  minDistance = parseInt(seperationSelect.value);
+});
+
+// Alignment
+alignmentSelect.addEventListener("change", () => {
+  matchingFactor = parseFloat(alignmentSelect.value/1000);
+});
+
+// Visual range boids
+visualRangeBoidSelect.addEventListener("change", () => {
+  visualRangeBoid = parseInt(visualRangeBoidSelect.value);
+});
+
+// Visual range predators
+visualRangePredatorSelect.addEventListener("change", () => {
+  visualRangePredator = parseInt(visualRangePredatorSelect.value);
+});
+
+// Bird speed
+birdSpeedSelect.addEventListener("change", () => {
+  speedLimit = parseInt(birdSpeedSelect.value);
 });
 
 /* strategySelect.addEventListener("change", () => { // TODO: uncomment this after implmenting all the other strategies
@@ -127,7 +163,7 @@ function sizeCanvas() {
 // nudge it back in and reverse its direction.
 function keepWithinBounds(bird) {
   
-  const margin = 200;
+  const margin = 50;
   const turnFactor = 3;
 
   if (bird.x < margin) {
@@ -147,8 +183,6 @@ function keepWithinBounds(bird) {
 // Find the center of mass of the other boids and adjust velocity slightly to
 // point towards the center of mass.
 function flyTowardsCenter(boid) {
-  const centeringFactor = 0.005; // adjust velocity by this %
-
   let centerX = 0;
   let centerY = 0;
   let numNeighbors = 0;
@@ -172,7 +206,6 @@ function flyTowardsCenter(boid) {
 
 // Move away from other boids that are too close to avoid colliding
 function avoidOthers(boid) {
-  const minDistance = 20; // The distance to stay away from other boids
   const avoidFactor = 0.05; // Adjust velocity by this %
   let moveX = 0;
   let moveY = 0;
@@ -208,7 +241,6 @@ function avoidPredators(boid) {
 // Find the average velocity (speed and direction) of the other boids and
 // adjust velocity slightly to match.
 function matchVelocity(boid) {
-  const matchingFactor = 0.05; // Adjust by this % of average velocity
 
   let avgDX = 0;
   let avgDY = 0;
@@ -357,4 +389,6 @@ window.onload = () => {
 
   // Schedule the main animation loop
   window.requestAnimationFrame(animationLoop);
+
+
 };
