@@ -7,40 +7,30 @@ const Strategy = Object.freeze({ // enum
   PERSUIT: "persuit",
   AMBUSH: "ambush",
 });
-var currentStrategy = Strategy.CLOSEST;
 
+
+// Simulation settings
 let numBoids = 100; // Amount of Boids on the canvas
 let visualRangeBoid = 75; // Visual range of the boids
-let visualRangePredator = 100; // Visual range of the predators
+let visualRangePredator = 75; // Visual range of the predators
 let speedLimit = 15;  // Speed limit of the birds
 let minDistance = 20; // Minimum distance between boids
 let centeringFactor = 0.005; // Determines the coherence between boids 
 let matchingFactor = 0.05; // Determines the alignment between boids 
+var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
+let DRAW_TRAIL = false; // Draw the trail of the boids
 
-
-let numPredators = 1;
-let DRAW_TRAIL = false;
-
+// Birds
 var boids = [];
 var predator;
 
-
+// Data to be collected
 let simulationData = {
-  settings: {
-    numBoids: numBoids,
-    coherence: centeringFactor,
-    seperation: minDistance,
-    alignment: matchingFactor,
-    visualRangeBoid: visualRangeBoid,
-    visualRangePredator: visualRangePredator,
-    speedLimit: speedLimit,
-    strategy: currentStrategy,
-    width: width,
-    height: height,
-  },
+  settings: {}, 
   captures: [],  // Array to hold the timestamps of the captures
   positionPredator: [], // Array to hold the positions of the predators
-  simulationStartTime: undefined,
+  simulationStartTime: Date.now(),
+  simulationEndTime: Date.now(),
   traveledDistance: 0
 };
 
@@ -60,7 +50,9 @@ const strategySelect = document.getElementById("strategySelect");
 
 const startButton = document.getElementById("startButton");
 let simulationRunning = false;
+const exportDataButton = document.getElementById("exportDataButton");
 
+// *********** Event Listeners ***********/ 
 // Settings menu toggle
 settingsToggle.addEventListener("click", () => {
   settingsMenu.style.display = settingsOpen ? "none" : "flex";
@@ -116,15 +108,35 @@ startButton.addEventListener("click", () => {
     startButton.style.backgroundColor = "red"; 
     startButton.value = "Stop";
     window.requestAnimationFrame(animationLoop);
+
+    // Start collecting data
+    simulationData.settings = {
+      numBoids: numBoids,
+      coherence: centeringFactor,
+      seperation: minDistance,
+      alignment: matchingFactor,
+      visualRangeBoid: visualRangeBoid,
+      visualRangePredator: visualRangePredator,
+      speedLimit: speedLimit,
+      strategy: currentStrategy,
+      width: width,
+      height: height,
+    };
+    simulationData.simulationStartTime = Date.now();
   } else {
     simulationRunning = false;
     startButton.style.backgroundColor = "green"; 
     startButton.value = "Start";
+    simulationData.simulationEndTime = Date.now();
   }
 });
 
-/************ Model ***********/
+// Export data button
+exportDataButton.addEventListener("click", () => {
+  exportData();
+});
 
+/************ Model ***********/
 function initBoids() {
   for (var i = 0; i < numBoids; i += 1) {
     boids[boids.length] = {
@@ -163,6 +175,7 @@ function nClosestBoids(boid, n) {
   // Return the `n` closest
   return sorted.slice(1, n + 1);
 }
+
 
 function chaseAmbush(predator){
   const boid = predatorsClosestBoid(predator);
@@ -377,6 +390,51 @@ function drawBoid(ctx, boid) {
   }
 }
 
+function exportData() {
+  if (simulationData.simulationStartTime && simulationData.simulationEndTime) {
+    simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
+  }
+  
+  // Create an array for the headers and an array for the data
+  const headers = [
+    "Number of Boids", 
+    "Visual Range (Boid)", 
+    "Visual Range (Predator)", 
+    "Speed Limit", 
+    "Min Distance", 
+    "Centering Factor", 
+    "Matching Factor", 
+    "Predator Strategy", 
+    "Total Time (ms)", 
+    "Captures", 
+    "Traveled Distance"
+  ];
+  
+  const dataRow = [
+    simulationData.settings.numBoids,
+    simulationData.settings.visualRangeBoid,
+    simulationData.settings.visualRangePredator,
+    simulationData.settings.speedLimit,
+    simulationData.settings.seperation,
+    simulationData.settings.coherence,
+    simulationData.settings.alignment,
+    simulationData.settings.strategy,
+    simulationData.totalTime,
+    simulationData.captures.length,
+    parseFloat(simulationData.traveledDistance.toFixed(2))
+  ];
+  
+  // Create a worksheet
+  const ws = XLSX.utils.aoa_to_sheet([headers, dataRow]);
+  
+  // Create a workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Simulation Data");
+  
+  // Generate Excel file and trigger download
+  XLSX.writeFile(wb, "simulation_data.xlsx");
+}
+  
 // Main animation loop
 function animationLoop() {
   // Update each boid
@@ -415,9 +473,16 @@ function animationLoop() {
     predator.y += predator.dy;
     predator.history.push([predator.x, predator.y])
     predator.history = predator.history.slice(-50);
-    
+
+    simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+    simulationData.positionPredator.push([predator.x, predator.y]);
 
   
+  capturedBoids = boids.filter(boid => distance(predator, boid) < 5);
+  for (i = 0; i < capturedBoids.length; i++){
+    simulationData.captures.push(Date.now() - simulationData.simulationStartTime);
+  }
+
   // Remove a captured boid from boids
   boids = boids.filter(boid => distance(predator, boid) >= 5);
 
