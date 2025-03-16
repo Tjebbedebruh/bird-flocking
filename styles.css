@@ -33,3 +33,9 @@ body {
     width: 100%;
 }
 
+#startButton {
+    background-color: green;
+    font-family:  monospace;
+    color: white;
+    height: 30px;
+}

@@ -22,7 +22,27 @@ let numPredators = 1;
 let DRAW_TRAIL = false;
 
 var boids = [];
-var predators = [];
+var predator;
+
+
+let simulationData = {
+  settings: {
+    numBoids: numBoids,
+    coherence: centeringFactor,
+    seperation: minDistance,
+    alignment: matchingFactor,
+    visualRangeBoid: visualRangeBoid,
+    visualRangePredator: visualRangePredator,
+    speedLimit: speedLimit,
+    strategy: currentStrategy,
+    width: width,
+    height: height,
+  },
+  captures: [],  // Array to hold the timestamps of the captures
+  positionPredator: [], // Array to hold the positions of the predators
+  simulationStartTime: undefined,
+  traveledDistance: 0
+};
 
 /*********** Settings Menu ***********/
 const settingsMenu = document.getElementById("settings-menu");
@@ -37,6 +57,9 @@ const visualRangeBoidSelect = document.getElementById("visualRangeBoidSelect");
 const visualRangePredatorSelect = document.getElementById("visualRangePredatorSelect");
 const birdSpeedSelect  = document.getElementById("birdSpeedSelect");
 const strategySelect = document.getElementById("strategySelect");
+
+const startButton = document.getElementById("startButton");
+let simulationRunning = false;
 
 // Settings menu toggle
 settingsToggle.addEventListener("click", () => {
@@ -81,9 +104,24 @@ birdSpeedSelect.addEventListener("change", () => {
   speedLimit = parseInt(birdSpeedSelect.value);
 });
 
-/* strategySelect.addEventListener("change", () => { // TODO: uncomment this after implmenting all the other strategies
+// Strategy
+strategySelect.addEventListener("change", () => { 
   currentStrategy = strategySelect.value;
-}); */
+}); 
+
+// Start button
+startButton.addEventListener("click", () => {
+  if (!simulationRunning) {
+    simulationRunning = true;
+    startButton.style.backgroundColor = "red"; 
+    startButton.value = "Stop";
+    window.requestAnimationFrame(animationLoop);
+  } else {
+    simulationRunning = false;
+    startButton.style.backgroundColor = "green"; 
+    startButton.value = "Start";
+  }
+});
 
 /************ Model ***********/
 
@@ -99,16 +137,14 @@ function initBoids() {
   }
 }
 
-function initPredators() {
-  for (var i = 0; i < numPredators; i += 1) {
-    predators[predators.length] = {
-      x: width / 2,
-      y: height / 2,
-      dx: Math.random() * 10 - 5,
-      dy: Math.random() * 10 - 5,
-      history: [],  // For drawing the trail
-    };
-  }
+function initPredator() {
+  predator = {
+    x: width / 2,
+    y: height / 2,
+    dx: Math.random() * 10 - 5,
+    dy: Math.random() * 10 - 5,
+    history: [],  // For drawing the trail
+  };
 }
 
 function distance(boid1, boid2) {
@@ -255,12 +291,11 @@ function avoidPredators(boid) {
   const avoidFactor = 0.05; // Adjust velocity by this %
   let moveX = 0;
   let moveY = 0;
-  for (let predator of predators) {
-    if (distance(boid, predator) < visualRangeBoid) {
-      moveX += boid.x - predator.x;
-      moveY += boid.y - predator.y;
-    }
-  }
+
+  if (distance(boid, predator) < visualRangeBoid) {
+    moveX += boid.x - predator.x;
+    moveY += boid.y - predator.y;
+  }  
 
   boid.dx += moveX * avoidFactor;
   boid.dy += moveY * avoidFactor;
@@ -361,7 +396,7 @@ function animationLoop() {
     boid.history = boid.history.slice(-50);
   }
 
-  for (let predator of predators){
+
     if (currentStrategy == Strategy.CLOSEST){ 
       chaseCloses(predator);
     }
@@ -380,12 +415,11 @@ function animationLoop() {
     predator.y += predator.dy;
     predator.history.push([predator.x, predator.y])
     predator.history = predator.history.slice(-50);
-  }
+    
+
   
   // Remove a captured boid from boids
-  for(let predator of predators){
-    boids = boids.filter(boid => distance(predator, boid) >= 5);
-  }
+  boids = boids.filter(boid => distance(predator, boid) >= 5);
 
   // Clear the canvas and redraw all the boids in their current positions
   const ctx = document.getElementById("boids").getContext("2d");
@@ -393,23 +427,23 @@ function animationLoop() {
   for (let boid of boids) {
     drawBoid(ctx, boid);
   }
-  for (let predator of predators) {
-    drawPredator(ctx, predator);
-  }
+  
+  drawPredator(ctx, predator);
+  
 
   // Schedule the next frame when no boid has been captured // TODO: removed for settings menu testing. Can be returned later
   // if (boids.length === numBoids){
   //   window.requestAnimationFrame(animationLoop);
   // } 
-
+  if (simulationRunning){
     window.requestAnimationFrame(animationLoop);
+  }
 }
 
 function resetAnimation () {
   boids = [];
-  predators = [];
   initBoids();
-  initPredators();
+  initPredator();
 }
 
 
@@ -420,10 +454,9 @@ window.onload = () => {
 
   // Randomly distribute the boids to start
   initBoids();
-  initPredators();
+  initPredator();
 
   // Schedule the main animation loop
-  window.requestAnimationFrame(animationLoop);
-
+  //window.requestAnimationFrame(animationLoop);
 
 };
