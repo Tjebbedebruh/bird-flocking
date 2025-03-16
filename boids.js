@@ -2,12 +2,16 @@
 let width = 150;
 let height = 150;
 
+// Strategy's 
 const Strategy = Object.freeze({ // enum
   CLOSEST: "closest",
   PERSUIT: "persuit",
   AMBUSH: "ambush",
 });
 
+// State booleans
+let settingsOpen = false; 
+let simulationRunning = false; 
 
 // Simulation settings
 let numBoids = 100; // Amount of Boids on the canvas
@@ -29,16 +33,14 @@ let simulationData = {
   settings: {}, 
   captures: [],  // Array to hold the timestamps of the captures
   positionPredator: [], // Array to hold the positions of the predators
-  simulationStartTime: Date.now(),
-  simulationEndTime: Date.now(),
-  traveledDistance: 0
+  simulationStartTime: Date.now(), // Default start time of the simulation 
+  simulationEndTime: Date.now(), // Default end time of the simulation such that the total time is 0
+  traveledDistance: 0 // Distance traveled by the predator
 };
 
 /*********** Settings Menu ***********/
 const settingsMenu = document.getElementById("settings-menu");
-const settingsToggle = document.getElementById("settings-toggle");
-let settingsOpen = false; 
-
+const settingsToggle = document.getElementById("settings-toggle")
 const numBoidsSelect = document.getElementById("numBoidsSelect");
 const coherenceSelect = document.getElementById("coherenceSelect"); 
 const seperationSelect = document.getElementById("seperationSelect");
@@ -47,10 +49,9 @@ const visualRangeBoidSelect = document.getElementById("visualRangeBoidSelect");
 const visualRangePredatorSelect = document.getElementById("visualRangePredatorSelect");
 const birdSpeedSelect  = document.getElementById("birdSpeedSelect");
 const strategySelect = document.getElementById("strategySelect");
-
 const startButton = document.getElementById("startButton");
-let simulationRunning = false;
 const exportDataButton = document.getElementById("exportDataButton");
+
 
 // *********** Event Listeners ***********/ 
 // Settings menu toggle
@@ -103,32 +104,7 @@ strategySelect.addEventListener("change", () => {
 
 // Start button
 startButton.addEventListener("click", () => {
-  if (!simulationRunning) {
-    simulationRunning = true;
-    startButton.style.backgroundColor = "red"; 
-    startButton.value = "Stop";
-    window.requestAnimationFrame(animationLoop);
-
-    // Start collecting data
-    simulationData.settings = {
-      numBoids: numBoids,
-      coherence: centeringFactor,
-      seperation: minDistance,
-      alignment: matchingFactor,
-      visualRangeBoid: visualRangeBoid,
-      visualRangePredator: visualRangePredator,
-      speedLimit: speedLimit,
-      strategy: currentStrategy,
-      width: width,
-      height: height,
-    };
-    simulationData.simulationStartTime = Date.now();
-  } else {
-    simulationRunning = false;
-    startButton.style.backgroundColor = "green"; 
-    startButton.value = "Start";
-    simulationData.simulationEndTime = Date.now();
-  }
+  runSimulation();
 });
 
 // Export data button
@@ -136,7 +112,8 @@ exportDataButton.addEventListener("click", () => {
   exportData();
 });
 
-/************ Model ***********/
+
+/************ Setup Model ***********/
 function initBoids() {
   for (var i = 0; i < numBoids; i += 1) {
     boids[boids.length] = {
@@ -159,14 +136,8 @@ function initPredator() {
   };
 }
 
-function distance(boid1, boid2) {
-  return Math.sqrt(
-    (boid1.x - boid2.x) * (boid1.x - boid2.x) +
-      (boid1.y - boid2.y) * (boid1.y - boid2.y),
-  );
-}
 
-
+// ************ Simulation ***********/
 function nClosestBoids(boid, n) {
   // Make a copy
   const sorted = boids.slice();
@@ -176,7 +147,9 @@ function nClosestBoids(boid, n) {
   return sorted.slice(1, n + 1);
 }
 
-
+// ************ Predator Strategy's ***********/
+// The predator will not move if there are no boids in the visual range 
+// But if there are boids in the visual range, the predator will move towards the closest boid
 function chaseAmbush(predator){
   const boid = predatorsClosestBoid(predator);
   const chaseFactor = 0.05; // Adjust velocity by this %
@@ -184,7 +157,7 @@ function chaseAmbush(predator){
   let moveX = 0;
   let moveY = 0;
 
-  if (distance(boid,predator) < 75){
+  if (distance(boid,predator) < visualRangePredator){
     moveX = boid.x - predator.x;
     moveY = boid.y - predator.y; 
   }
@@ -192,6 +165,7 @@ function chaseAmbush(predator){
   predator.dy += moveY * chaseFactor;
 }
 
+// The predator will choose a random boid and chase it
 let randomBoid = Math.floor(Math.random() * boids.length);
 
 function chasePersuit(predator){
@@ -205,7 +179,8 @@ function chasePersuit(predator){
   predator.dy += moveY * chaseFactor;
 }
 
-function chaseCloses(predator){
+// The predator will repeatedly move towards the closest boid
+function chaseClosest(predator){
   const boid = predatorsClosestBoid(predator);
   const chaseFactor = 0.05; // Adjust velocity by this %
 
@@ -349,6 +324,13 @@ function limitSpeed(bird) {
   }
 }
 
+function distance(boid1, boid2) {
+  return Math.sqrt(
+    (boid1.x - boid2.x) * (boid1.x - boid2.x) +
+      (boid1.y - boid2.y) * (boid1.y - boid2.y),
+  );
+}
+
 function drawPredator(ctx, predator) {
   const angle = Math.atan2(predator.dy, predator.dx);
   ctx.translate(predator.x, predator.y);
@@ -387,6 +369,35 @@ function drawBoid(ctx, boid) {
       ctx.lineTo(point[0], point[1]);
     }
     ctx.stroke();
+  }
+}
+
+function runSimulation() {
+  if (!simulationRunning) {
+    simulationRunning = true;
+    startButton.style.backgroundColor = "#d33f3f"; 
+    startButton.value = "Stop";
+    window.requestAnimationFrame(animationLoop);
+
+    // Start collecting data
+    simulationData.settings = {
+      numBoids: numBoids,
+      coherence: centeringFactor,
+      seperation: minDistance,
+      alignment: matchingFactor,
+      visualRangeBoid: visualRangeBoid,
+      visualRangePredator: visualRangePredator,
+      speedLimit: speedLimit,
+      strategy: currentStrategy,
+      width: width,
+      height: height,
+    };
+    simulationData.simulationStartTime = Date.now();
+  } else {
+    simulationRunning = false;
+    startButton.style.backgroundColor = "#52c655"; 
+    startButton.value = "Start";
+    simulationData.simulationEndTime = Date.now();
   }
 }
 
@@ -456,7 +467,7 @@ function animationLoop() {
 
 
     if (currentStrategy == Strategy.CLOSEST){ 
-      chaseCloses(predator);
+      chaseClosest(predator);
     }
     else if (currentStrategy == Strategy.PERSUIT){
       chasePersuit(predator);
@@ -495,11 +506,6 @@ function animationLoop() {
   
   drawPredator(ctx, predator);
   
-
-  // Schedule the next frame when no boid has been captured // TODO: removed for settings menu testing. Can be returned later
-  // if (boids.length === numBoids){
-  //   window.requestAnimationFrame(animationLoop);
-  // } 
   if (simulationRunning){
     window.requestAnimationFrame(animationLoop);
   }
