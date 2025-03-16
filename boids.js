@@ -28,6 +28,8 @@ let DRAW_TRAIL = false; // Draw the trail of the boids
 var boids = [];
 var predator;
 
+var amountOfCaptures = 0; // amount of boids that have been captured
+
 // Data to be collected
 let simulationData = {
   settings: {}, 
@@ -496,6 +498,10 @@ function animationLoop() {
 
   // Remove a captured boid from boids
   boids = boids.filter(boid => distance(predator, boid) >= 5);
+
+  const boidsCapturedCounter = document.getElementById("boidsCapturedCounter");
+  amountOfCaptures += capturedBoids.length;
+  boidsCapturedCounter.innerHTML = "Amount of birds captured: " + amountOfCaptures;
 
   // Clear the canvas and redraw all the boids in their current positions
   const ctx = document.getElementById("boids").getContext("2d");
