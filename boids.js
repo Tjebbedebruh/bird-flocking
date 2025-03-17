@@ -70,7 +70,7 @@ settingsToggle.addEventListener("click", () => {
 // Number of boids
 numBoidsSelect.addEventListener("change", () => {
   numBoids = parseInt(numBoidsSelect.value);
-  resetAnimation();
+  resetSimulation();
 });
 
 // Coherence 
@@ -410,17 +410,15 @@ function runSimulation() {
       height: height,
     };
     simulationData.simulationStartTime = Date.now();
-
-    //console.log("Simulation started");
-    //onsole.log("Simulation data:", simulationData);
-    //console.log(predator.dx, predator.dy);
 }
 
 function addDataToArray() {
 
+  // Add the missing data from the simulation to the simulationData 
   simulationData.simulationEndTime = Date.now();
   simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
 
+  // Create a new row for the data from this rounds simulation
   const dataRow = [
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
@@ -435,12 +433,14 @@ function addDataToArray() {
     parseFloat(simulationData.traveledDistance.toFixed(2))
   ];
   
+  // Add the data to the array which contains all the data from all simulation rounds
   allSimulationData.push(dataRow);
 }
 
 
 function exportData() {
 
+  // Excel column headers
   const headers = [
     "Number of Boids", 
     "Visual Range (Boid)", 
@@ -486,7 +486,7 @@ function animationLoop() {
     boid.history = boid.history.slice(-50);
   }
 
-
+    // Strategy select
     if (currentStrategy == Strategy.CLOSEST){ 
       chaseClosest(predator);
     }
@@ -535,7 +535,7 @@ function animationLoop() {
   if (boids.length == 0) {
     simulationRunning = false;
     addDataToArray();
-    resetAnimation();
+    resetSimulation();
     runSimulation();
   }
 
@@ -544,7 +544,7 @@ function animationLoop() {
   }
 }
 
-function resetAnimation () {
+function resetSimulation () {
   boids = [];
   amountOfCaptures = 0;
   initBoids();
@@ -566,7 +566,5 @@ window.onload = () => {
   window.addEventListener("resize", sizeCanvas, false);
   sizeCanvas();
 
-  // Randomly distribute the boids to start
-  initBoids();
-  initPredator();
+  resetSimulation();
 };
