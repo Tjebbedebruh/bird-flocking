@@ -391,24 +391,24 @@ function toggleSimulation() {
 }
 
 function runSimulation() {
-    simulationRunning = true;
-    startButton.style.backgroundColor = "#d33f3f"; 
-    startButton.value = "Stop";
+  simulationRunning = true;
+  startButton.style.backgroundColor = "#d33f3f"; 
+  startButton.value = "Stop";
 
-    // Start collecting data
-    simulationData.settings = {
-      numBoids: numBoids,
-      coherence: centeringFactor,
-      seperation: minDistance,
-      alignment: matchingFactor,
-      visualRangeBoid: visualRangeBoid,
-      visualRangePredator: visualRangePredator,
-      speedLimit: speedLimit,
-      strategy: currentStrategy,
-      width: width,
-      height: height,
-    };
-    simulationData.simulationStartTime = Date.now();
+  // Start collecting data
+  simulationData.settings = {
+    numBoids: numBoids,
+    coherence: centeringFactor,
+    seperation: minDistance,
+    alignment: matchingFactor,
+    visualRangeBoid: visualRangeBoid,
+    visualRangePredator: visualRangePredator,
+    speedLimit: speedLimit,
+    strategy: currentStrategy,
+    width: width,
+    height: height,
+  };
+  simulationData.simulationStartTime = Date.now();
 }
 
 function addDataToArray() {
@@ -485,16 +485,16 @@ function animationLoop() {
     boid.history = boid.history.slice(-50);
   }
 
-    // Strategy select
-    if (currentStrategy == Strategy.CLOSEST){ 
-      chaseClosest(predator);
-    }
-    else if (currentStrategy == Strategy.PERSUIT){
-      chasePersuit(predator);
-    }
-    else if (currentStrategy == Strategy.AMBUSH){
-      chaseAmbush(predator);
-    }
+  // Strategy select
+  if (currentStrategy == Strategy.CLOSEST){ 
+    chaseClosest(predator);
+  }
+  else if (currentStrategy == Strategy.PERSUIT){
+    chasePersuit(predator);
+  }
+  else if (currentStrategy == Strategy.AMBUSH){
+    chaseAmbush(predator);
+  }
 
   keepWithinBounds(predator);
   limitSpeed(predator);
