@@ -20,7 +20,8 @@ let visualRangePredator = 75; // Visual range of the predators
 let speedLimit = 15;  // Speed limit of the birds
 let minDistance = 20; // Minimum distance between boids
 let centeringFactor = 0.005; // Determines the coherence between boids 
-let matchingFactor = 0.05; // Determines the alignment between boids 
+let matchingFactor = 0.5; // Determines how fast the aligment is reached
+let targetPolarization = 0.96; // The desired polarization from real starling data
 var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 
@@ -85,7 +86,7 @@ seperationSelect.addEventListener("change", () => {
 
 // Alignment
 alignmentSelect.addEventListener("change", () => {
-  matchingFactor = parseFloat(alignmentSelect.value/1000);
+  targetPolarization = parseFloat(alignmentSelect.value/100);
 });
 
 // Visual range boids
@@ -302,7 +303,8 @@ function matchVelocity(boid) {
   let avgDX = 0;
   let avgDY = 0;
   let numNeighbors = 0;
-
+  
+  // Find neighbors within visual range
   for (let otherBoid of boids) {
     if (distance(boid, otherBoid) < visualRangeBoid) {
       avgDX += otherBoid.dx;
@@ -310,13 +312,38 @@ function matchVelocity(boid) {
       numNeighbors += 1;
     }
   }
-
+  
   if (numNeighbors) {
+    // Calculate average velocity direction
     avgDX = avgDX / numNeighbors;
     avgDY = avgDY / numNeighbors;
+    
+    // Calculate the current alignment between this boid and its neighbors
+    const avgVelocityMagnitude = Math.sqrt(avgDX * avgDX + avgDY * avgDY);
+    const boidVelocityMagnitude = Math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy);
 
-    boid.dx += (avgDX - boid.dx) * matchingFactor;
-    boid.dy += (avgDY - boid.dy) * matchingFactor;
+    // Calculate dot product to find current alignment (between -1 and 1)
+    const dotProduct = (boid.dx * avgDX + boid.dy * avgDY) / (Math.abs(avgVelocityMagnitude) * Math.abs(boidVelocityMagnitude));
+      
+    // Current alignment on a 0 to 1 scale 
+    const currentAlignment = (dotProduct + 1) / 2;
+    
+    // Adaptively adjust alignment factor based on how far we are from target
+    let adjustmentFactor = 0; // Default to no adjustment
+    
+    // If the targeted polirization is not reached yet, steer
+    if (currentAlignment < targetPolarization) {
+      // Need more alignment - stronger factor
+      adjustmentFactor = Math.min(1.0, matchingFactor * (1 + (targetPolarization - currentAlignment)));
+    } 
+    
+    // Normalize average velocity
+    const normalizedDX = avgDX / avgVelocityMagnitude;
+    const normalizedDY = avgDY / avgVelocityMagnitude;
+    
+    // Apply adjustment while preserving speed
+    boid.dx += (normalizedDX * boidVelocityMagnitude - boid.dx) * adjustmentFactor;
+    boid.dy += (normalizedDY * boidVelocityMagnitude - boid.dy) * adjustmentFactor;  
   }
 }
 
@@ -391,24 +418,25 @@ function toggleSimulation() {
 }
 
 function runSimulation() {
-  simulationRunning = true;
-  startButton.style.backgroundColor = "#d33f3f"; 
-  startButton.value = "Stop";
+    simulationRunning = true;
+    startButton.style.backgroundColor = "#d33f3f"; 
+    startButton.value = "Stop";
 
-  // Start collecting data
-  simulationData.settings = {
-    numBoids: numBoids,
-    coherence: centeringFactor,
-    seperation: minDistance,
-    alignment: matchingFactor,
-    visualRangeBoid: visualRangeBoid,
-    visualRangePredator: visualRangePredator,
-    speedLimit: speedLimit,
-    strategy: currentStrategy,
-    width: width,
-    height: height,
-  };
-  simulationData.simulationStartTime = Date.now();
+    // Start collecting data
+    simulationData.settings = {
+      numBoids: numBoids,
+      coherence: centeringFactor,
+      seperation: minDistance,
+      alignment: matchingFactor,
+      targetPolarization: targetPolarization,
+      visualRangeBoid: visualRangeBoid,
+      visualRangePredator: visualRangePredator,
+      speedLimit: speedLimit,
+      strategy: currentStrategy,
+      width: width,
+      height: height,
+    };
+    simulationData.simulationStartTime = Date.now();
 }
 
 function addDataToArray() {
@@ -426,6 +454,7 @@ function addDataToArray() {
     simulationData.settings.seperation,
     simulationData.settings.coherence,
     simulationData.settings.alignment,
+    simulationData.settings.targetPolarization,
     simulationData.settings.strategy,
     simulationData.totalTime,
     simulationData.captures.length,
@@ -448,6 +477,7 @@ function exportData() {
     "Min Distance", 
     "Centering Factor", 
     "Matching Factor", 
+    "Target Polarization",
     "Predator Strategy", 
     "Total Time (ms)", 
     "Captures", 
@@ -485,28 +515,29 @@ function animationLoop() {
     boid.history = boid.history.slice(-50);
   }
 
-  // Strategy select
-  if (currentStrategy == Strategy.CLOSEST){ 
-    chaseClosest(predator);
-  }
-  else if (currentStrategy == Strategy.PERSUIT){
-    chasePersuit(predator);
-  }
-  else if (currentStrategy == Strategy.AMBUSH){
-    chaseAmbush(predator);
-  }
+    // Strategy select
+    if (currentStrategy == Strategy.CLOSEST){ 
+      chaseClosest(predator);
+    }
+    else if (currentStrategy == Strategy.PERSUIT){
+      chasePersuit(predator);
+    }
+    else if (currentStrategy == Strategy.AMBUSH){
+      chaseAmbush(predator);
+    }
 
-  keepWithinBounds(predator);
-  limitSpeed(predator);
+    keepWithinBounds(predator);
+    limitSpeed(predator);
 
-  // Update the position based on the current velocity
-  predator.x += predator.dx;
-  predator.y += predator.dy;
-  predator.history.push([predator.x, predator.y])
-  predator.history = predator.history.slice(-50);
+    // Update the position based on the current velocity
+    predator.x += predator.dx;
+    predator.y += predator.dy;
+    predator.history.push([predator.x, predator.y])
+    predator.history = predator.history.slice(-50);
 
-  simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-  simulationData.positionPredator.push([predator.x, predator.y]);
+    simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+    simulationData.positionPredator.push([predator.x, predator.y]);
+
   
   capturedBoids = boids.filter(boid => distance(predator, boid) < 5);
   for (i = 0; i < capturedBoids.length; i++){
