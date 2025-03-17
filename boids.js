@@ -110,7 +110,7 @@ strategySelect.addEventListener("change", () => {
 
 // Start button
 startButton.addEventListener("click", () => {
-  runSimulation();
+  toggleSimulation()
 });
 
 // Export data button
@@ -379,13 +379,22 @@ function drawBoid(ctx, boid) {
   }
 }
 
-function runSimulation() {
+function toggleSimulation() {
   if (!simulationRunning) {
+    runSimulation();
+    window.requestAnimationFrame(animationLoop);
+  } else {
+    simulationRunning = false;
+    startButton.style.backgroundColor = "#52c655"; 
+    startButton.value = "Start";
+    simulationData.simulationEndTime = Date.now();
+  }
+}
+
+function runSimulation() {
     simulationRunning = true;
     startButton.style.backgroundColor = "#d33f3f"; 
     startButton.value = "Stop";
-    window.requestAnimationFrame(animationLoop);
-
 
     // Start collecting data
     simulationData.settings = {
@@ -402,14 +411,9 @@ function runSimulation() {
     };
     simulationData.simulationStartTime = Date.now();
 
-    console.log("Simulation started");
-    console.log("Simulation data:", simulationData);
-  } else {
-    simulationRunning = false;
-    startButton.style.backgroundColor = "#52c655"; 
-    startButton.value = "Start";
-    simulationData.simulationEndTime = Date.now();
-  }
+    //console.log("Simulation started");
+    //onsole.log("Simulation data:", simulationData);
+    //console.log(predator.dx, predator.dy);
 }
 
 function addDataToArray() {
