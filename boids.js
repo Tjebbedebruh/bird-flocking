@@ -299,7 +299,6 @@ function avoidPredators(boid) {
 // Find the average velocity (speed and direction) of the other boids and
 // adjust velocity slightly to match.
 function matchVelocity(boid) {
-
   let avgDX = 0;
   let avgDY = 0;
   let numNeighbors = 0;
@@ -483,28 +482,27 @@ function animationLoop() {
   }
 
 
-    if (currentStrategy == Strategy.CLOSEST){ 
-      chaseClosest(predator);
-    }
-    else if (currentStrategy == Strategy.PERSUIT){
-      chasePersuit(predator);
-    }
-    else if (currentStrategy == Strategy.AMBUSH){
-      chaseAmbush(predator);
-    }
+  if (currentStrategy == Strategy.CLOSEST){ 
+    chaseClosest(predator);
+  }
+  else if (currentStrategy == Strategy.PERSUIT){
+    chasePersuit(predator);
+  }
+  else if (currentStrategy == Strategy.AMBUSH){
+    chaseAmbush(predator);
+  }
 
-    keepWithinBounds(predator);
-    limitSpeed(predator);
+  keepWithinBounds(predator);
+  limitSpeed(predator);
 
-    // Update the position based on the current velocity
-    predator.x += predator.dx;
-    predator.y += predator.dy;
-    predator.history.push([predator.x, predator.y])
-    predator.history = predator.history.slice(-50);
+  // Update the position based on the current velocity
+  predator.x += predator.dx;
+  predator.y += predator.dy;
+  predator.history.push([predator.x, predator.y])
+  predator.history = predator.history.slice(-50);
 
-    simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-    simulationData.positionPredator.push([predator.x, predator.y]);
-
+  simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+  simulationData.positionPredator.push([predator.x, predator.y]);
   
   capturedBoids = boids.filter(boid => distance(predator, boid) < 5);
   for (i = 0; i < capturedBoids.length; i++){
