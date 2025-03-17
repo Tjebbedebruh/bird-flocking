@@ -28,7 +28,11 @@ let DRAW_TRAIL = false; // Draw the trail of the boids
 var boids = [];
 var predator;
 
+let allSimulationData = [];
 var amountOfCaptures = 0; // amount of boids that have been captured
+
+// Excel data to be exported
+let wb = XLSX.utils.book_new();
 
 // Data to be collected
 let simulationData = {
@@ -111,6 +115,7 @@ startButton.addEventListener("click", () => {
 
 // Export data button
 exportDataButton.addEventListener("click", () => {
+  addDataToExcel();
   exportData();
 });
 
@@ -403,26 +408,11 @@ function runSimulation() {
   }
 }
 
-function exportData() {
+function addDataToExcel() {
   if (simulationData.simulationStartTime && simulationData.simulationEndTime) {
     simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
   }
-  
-  // Create an array for the headers and an array for the data
-  const headers = [
-    "Number of Boids", 
-    "Visual Range (Boid)", 
-    "Visual Range (Predator)", 
-    "Speed Limit", 
-    "Min Distance", 
-    "Centering Factor", 
-    "Matching Factor", 
-    "Predator Strategy", 
-    "Total Time (ms)", 
-    "Captures", 
-    "Traveled Distance"
-  ];
-  
+    
   const dataRow = [
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
@@ -437,16 +427,37 @@ function exportData() {
     parseFloat(simulationData.traveledDistance.toFixed(2))
   ];
   
-  // Create a worksheet
-  const ws = XLSX.utils.aoa_to_sheet([headers, dataRow]);
-  
-  // Create a workbook
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Simulation Data");
-  
-  // Generate Excel file and trigger download
-  XLSX.writeFile(wb, "simulation_data.xlsx");
+  allSimulationData.push(dataRow);
 }
+
+
+function exportData() {
+
+  const headers = [
+    "Number of Boids", 
+    "Visual Range (Boid)", 
+    "Visual Range (Predator)", 
+    "Speed Limit", 
+    "Min Distance", 
+    "Centering Factor", 
+    "Matching Factor", 
+    "Predator Strategy", 
+    "Total Time (ms)", 
+    "Captures", 
+    "Traveled Distance"
+  ];
+
+  // Convert to Excel
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...allSimulationData]);
+  XLSX.utils.book_append_sheet(wb, ws, "Simulation Data");
+
+  // Save the workbook to a file
+  XLSX.writeFile(wb, "simulation_data.xlsx");
+
+  // Clear the stored data after exporting
+  allSimulationData = [];
+}
+
   
 // Main animation loop
 function animationLoop() {
@@ -511,7 +522,15 @@ function animationLoop() {
   }
   
   drawPredator(ctx, predator);
-  
+
+  // If the simulation has ended, collect data and then run again
+  if (boids.length == 0) {
+    simulationRunning = false;
+    addDataToExcel();
+    resetAnimation();
+    runSimulation();
+  }
+
   if (simulationRunning){
     window.requestAnimationFrame(animationLoop);
   }
@@ -519,8 +538,18 @@ function animationLoop() {
 
 function resetAnimation () {
   boids = [];
+  amountOfCaptures = 0;
   initBoids();
   initPredator();
+
+  simulationData = {
+    settings: {},
+    captures: [],
+    positionPredator: [],
+    simulationStartTime: Date.now(),
+    simulationEndTime: null,
+    traveledDistance: 0
+  };
 }
 
 
@@ -532,8 +561,4 @@ window.onload = () => {
   // Randomly distribute the boids to start
   initBoids();
   initPredator();
-
-  // Schedule the main animation loop
-  //window.requestAnimationFrame(animationLoop);
-
 };
