@@ -70,7 +70,7 @@ settingsToggle.addEventListener("click", () => {
 // Number of boids
 numBoidsSelect.addEventListener("change", () => {
   numBoids = parseInt(numBoidsSelect.value);
-  resetAnimation();
+  resetSimulation();
 });
 
 // Coherence 
@@ -110,7 +110,7 @@ strategySelect.addEventListener("change", () => {
 
 // Start button
 startButton.addEventListener("click", () => {
-  runSimulation();
+  toggleSimulation()
 });
 
 // Export data button
@@ -378,13 +378,22 @@ function drawBoid(ctx, boid) {
   }
 }
 
-function runSimulation() {
+function toggleSimulation() {
   if (!simulationRunning) {
+    runSimulation();
+    window.requestAnimationFrame(animationLoop);
+  } else {
+    simulationRunning = false;
+    startButton.style.backgroundColor = "#52c655"; 
+    startButton.value = "Start";
+    simulationData.simulationEndTime = Date.now();
+  }
+}
+
+function runSimulation() {
     simulationRunning = true;
     startButton.style.backgroundColor = "#d33f3f"; 
     startButton.value = "Stop";
-    window.requestAnimationFrame(animationLoop);
-
 
     // Start collecting data
     simulationData.settings = {
@@ -400,22 +409,15 @@ function runSimulation() {
       height: height,
     };
     simulationData.simulationStartTime = Date.now();
-
-    console.log("Simulation started");
-    console.log("Simulation data:", simulationData);
-  } else {
-    simulationRunning = false;
-    startButton.style.backgroundColor = "#52c655"; 
-    startButton.value = "Start";
-    simulationData.simulationEndTime = Date.now();
-  }
 }
 
 function addDataToArray() {
 
+  // Add the missing data from the simulation to the simulationData 
   simulationData.simulationEndTime = Date.now();
   simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
 
+  // Create a new row for the data from this rounds simulation
   const dataRow = [
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
@@ -430,12 +432,14 @@ function addDataToArray() {
     parseFloat(simulationData.traveledDistance.toFixed(2))
   ];
   
+  // Add the data to the array which contains all the data from all simulation rounds
   allSimulationData.push(dataRow);
 }
 
 
 function exportData() {
 
+  // Excel column headers
   const headers = [
     "Number of Boids", 
     "Visual Range (Boid)", 
@@ -481,16 +485,16 @@ function animationLoop() {
     boid.history = boid.history.slice(-50);
   }
 
-
-  if (currentStrategy == Strategy.CLOSEST){ 
-    chaseClosest(predator);
-  }
-  else if (currentStrategy == Strategy.PERSUIT){
-    chasePersuit(predator);
-  }
-  else if (currentStrategy == Strategy.AMBUSH){
-    chaseAmbush(predator);
-  }
+    // Strategy select
+    if (currentStrategy == Strategy.CLOSEST){ 
+      chaseClosest(predator);
+    }
+    else if (currentStrategy == Strategy.PERSUIT){
+      chasePersuit(predator);
+    }
+    else if (currentStrategy == Strategy.AMBUSH){
+      chaseAmbush(predator);
+    }
 
   keepWithinBounds(predator);
   limitSpeed(predator);
@@ -529,7 +533,7 @@ function animationLoop() {
   if (boids.length == 0) {
     simulationRunning = false;
     addDataToArray();
-    resetAnimation();
+    resetSimulation();
     runSimulation();
   }
 
@@ -538,7 +542,7 @@ function animationLoop() {
   }
 }
 
-function resetAnimation () {
+function resetSimulation () {
   boids = [];
   amountOfCaptures = 0;
   initBoids();
@@ -560,7 +564,5 @@ window.onload = () => {
   window.addEventListener("resize", sizeCanvas, false);
   sizeCanvas();
 
-  // Randomly distribute the boids to start
-  initBoids();
-  initPredator();
+  resetSimulation();
 };
