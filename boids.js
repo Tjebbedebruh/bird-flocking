@@ -28,7 +28,7 @@ let DRAW_TRAIL = false; // Draw the trail of the boids
 var boids = [];
 var predator;
 
-let allSimulationData = [];
+let allSimulationData = []; // Array to holds the data of multiple simulation rounds
 var amountOfCaptures = 0; // amount of boids that have been captured
 
 // Excel data to be exported
@@ -41,6 +41,7 @@ let simulationData = {
   positionPredator: [], // Array to hold the positions of the predators
   simulationStartTime: Date.now(), // Default start time of the simulation 
   simulationEndTime: Date.now(), // Default end time of the simulation such that the total time is 0
+  simulationTotalTime: 0, // Total time of the simulation
   traveledDistance: 0 // Distance traveled by the predator
 };
 
@@ -68,7 +69,6 @@ settingsToggle.addEventListener("click", () => {
 
 // Number of boids
 numBoidsSelect.addEventListener("change", () => {
-  console.log("numBoidsSelect.value: ", numBoidsSelect.value);
   numBoids = parseInt(numBoidsSelect.value);
   resetAnimation();
 });
@@ -115,7 +115,7 @@ startButton.addEventListener("click", () => {
 
 // Export data button
 exportDataButton.addEventListener("click", () => {
-  addDataToExcel();
+  addDataToArray();
   exportData();
 });
 
@@ -223,7 +223,7 @@ function sizeCanvas() {
 function keepWithinBounds(bird) {
   
   const margin = 50;
-  const turnFactor = 3;
+  const turnFactor = 5;
 
   if (bird.x < margin) {
     bird.dx += turnFactor;
@@ -386,6 +386,7 @@ function runSimulation() {
     startButton.value = "Stop";
     window.requestAnimationFrame(animationLoop);
 
+
     // Start collecting data
     simulationData.settings = {
       numBoids: numBoids,
@@ -400,6 +401,9 @@ function runSimulation() {
       height: height,
     };
     simulationData.simulationStartTime = Date.now();
+
+    console.log("Simulation started");
+    console.log("Simulation data:", simulationData);
   } else {
     simulationRunning = false;
     startButton.style.backgroundColor = "#52c655"; 
@@ -408,11 +412,11 @@ function runSimulation() {
   }
 }
 
-function addDataToExcel() {
-  if (simulationData.simulationStartTime && simulationData.simulationEndTime) {
-    simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
-  }
-    
+function addDataToArray() {
+
+  simulationData.simulationEndTime = Date.now();
+  simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
+
   const dataRow = [
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
@@ -526,7 +530,7 @@ function animationLoop() {
   // If the simulation has ended, collect data and then run again
   if (boids.length == 0) {
     simulationRunning = false;
-    addDataToExcel();
+    addDataToArray();
     resetAnimation();
     runSimulation();
   }
@@ -546,7 +550,7 @@ function resetAnimation () {
     settings: {},
     captures: [],
     positionPredator: [],
-    simulationStartTime: Date.now(),
+    simulationStartTime: null,
     simulationEndTime: null,
     traveledDistance: 0
   };
