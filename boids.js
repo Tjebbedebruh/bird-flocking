@@ -16,11 +16,10 @@ let simulationRunning = false;
 // Simulation settings
 let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 50; // Visual range of the boids
-let visualRangePredator = 50; // Visual range of the predators
-let ambushRange = 60;
+let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimit = 12;  // Speed limit of the birds
 let minDistance = 5; // Minimum distance between boids
-let centeringFactor = 0.0035; // Determines the coherence between boids 
+let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
 let targetPolarization = 0.96; // The desired polarization from real starling data
 var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
@@ -55,7 +54,7 @@ const coherenceSelect = document.getElementById("coherenceSelect");
 const seperationSelect = document.getElementById("seperationSelect");
 const alignmentSelect = document.getElementById("alignmentSelect");
 const visualRangeBoidSelect = document.getElementById("visualRangeBoidSelect");
-const visualRangePredatorSelect = document.getElementById("visualRangePredatorSelect");
+const ambushRangepredatorSelect = document.getElementById("ambushRangepredatorSelect");
 const birdSpeedSelect  = document.getElementById("birdSpeedSelect");
 const strategySelect = document.getElementById("strategySelect");
 const startButton = document.getElementById("startButton");
@@ -96,8 +95,8 @@ visualRangeBoidSelect.addEventListener("change", () => {
 });
 
 // Visual range predators
-visualRangePredatorSelect.addEventListener("change", () => {
-  visualRangePredator = parseInt(visualRangePredatorSelect.value);
+ambushRangepredatorSelect.addEventListener("change", () => {
+  ambushRangepredator = parseInt(ambushRangepredatorSelect.value);
 });
 
 // Bird speed
@@ -156,7 +155,7 @@ function chaseAmbush(predator){
   let moveX = 0;
   let moveY = 0;
 
-  if (distance(boid,predator) < ambushRange){
+  if (distance(boid,predator) < ambushRangepredator){
     moveX = boid.x - predator.x;
     moveY = boid.y - predator.y; 
 
@@ -441,7 +440,7 @@ function runSimulation() {
       alignment: matchingFactor,
       targetPolarization: targetPolarization,
       visualRangeBoid: visualRangeBoid,
-      visualRangePredator: visualRangePredator,
+      ambushRangepredator: ambushRangepredator,
       speedLimit: speedLimit,
       strategy: currentStrategy,
       width: width,
@@ -461,7 +460,7 @@ function addDataToArray() {
   const dataRow = [
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
-    simulationData.settings.visualRangePredator,
+    simulationData.settings.ambushRangepredator,
     simulationData.settings.speedLimit,
     simulationData.settings.seperation,
     simulationData.settings.coherence,
