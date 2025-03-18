@@ -16,7 +16,7 @@ let simulationRunning = false;
 // Simulation settings
 let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 100; // Visual range of the boids
-let visualRangePredator = 100; // Visual range of the predators
+let visualRangePredator = 50; // Visual range of the predators
 let speedLimit = 12;  // Speed limit of the birds
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0035; // Determines the coherence between boids 
