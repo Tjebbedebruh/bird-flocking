@@ -392,8 +392,8 @@ function drawBoid(ctx, boid) {
   ctx.fillStyle = "#558cf4";
   ctx.beginPath();
   ctx.moveTo(boid.x, boid.y);
-  ctx.lineTo(boid.x - 2, boid.y + 1);
-  ctx.lineTo(boid.x - 2, boid.y - 1);
+  ctx.lineTo(boid.x - 3, boid.y + 1);
+  ctx.lineTo(boid.x - 3, boid.y - 1);
   ctx.lineTo(boid.x, boid.y);
   ctx.fill();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
