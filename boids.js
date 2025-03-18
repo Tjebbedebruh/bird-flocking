@@ -24,6 +24,7 @@ let matchingFactor = 0.3; // Determines how fast the aligment is reached
 let targetPolarization = 0.96; // The desired polarization from real starling data
 var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
+let activePredator = false; // Let the predator chase the boids
 
 // Birds
 var boids = [];
@@ -447,6 +448,10 @@ function runSimulation() {
       height: height,
     };
     simulationData.simulationStartTime = Date.now();
+
+    setTimeout(() => {
+      activePredator = true;  // Predator is now active
+    }, 3000);
 }
 
 // ************ Data Collection ***********/
@@ -454,7 +459,7 @@ function addDataToArray() {
 
   // Add the missing data from the simulation to the simulationData 
   simulationData.simulationEndTime = Date.now();
-  simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime;
+  simulationData.totalTime = (simulationData.simulationEndTime + 3000) - simulationData.simulationStartTime;
 
   // Create a new row for the data from this rounds simulation
   const dataRow = [
@@ -506,9 +511,7 @@ function exportData() {
   allSimulationData = [];
 }
 
-  
-// Main animation loop
-function animationLoop() {
+function boidsAnimation() {
   // Update each boid
   for (let boid of boids) {
     // Update the velocities according to each rule
@@ -525,43 +528,57 @@ function animationLoop() {
     boid.history.push([boid.x, boid.y])
     boid.history = boid.history.slice(-50);
   }
+}
 
-    // Strategy select
-    if (currentStrategy == Strategy.CLOSEST){ 
-      chaseClosest(predator);
-    }
-    else if (currentStrategy == Strategy.PERSUIT){
-      chasePersuit(predator);
-    }
-    else if (currentStrategy == Strategy.AMBUSH){
-      chaseAmbush(predator);
-    }
+function predatorAnimation() {
+  if (!activePredator) return;
 
-    keepWithinBounds(predator);
-    limitSpeed(predator);
-
-    // Update the position based on the current velocity
-    predator.x += predator.dx;
-    predator.y += predator.dy;
-    predator.history.push([predator.x, predator.y])
-    predator.history = predator.history.slice(-50);
-
-    simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-    simulationData.positionPredator.push([predator.x, predator.y]);
-
-  
-  capturedBoids = boids.filter(boid => distance(predator, boid) < 5);
-  for (i = 0; i < capturedBoids.length; i++){
-    simulationData.captures.push(Date.now() - simulationData.simulationStartTime);
+  // Strategy select
+  if (currentStrategy == Strategy.CLOSEST){ 
+    chaseClosest(predator);
+  }
+  else if (currentStrategy == Strategy.PERSUIT){
+    chasePersuit(predator);
+  }
+  else if (currentStrategy == Strategy.AMBUSH){
+    chaseAmbush(predator);
   }
 
-  // Remove a captured boid from boids
-  boids = boids.filter(boid => distance(predator, boid) >= 5);
+  keepWithinBounds(predator);
+  limitSpeed(predator);
 
-  const boidsCapturedCounter = document.getElementById("boidsCapturedCounter");
-  amountOfCaptures += capturedBoids.length;
-  boidsCapturedCounter.innerHTML = "Amount of birds captured: " + amountOfCaptures;
+  // Update the position based on the current velocity
+  predator.x += predator.dx;
+  predator.y += predator.dy;
+  predator.history.push([predator.x, predator.y])
+  predator.history = predator.history.slice(-50);
 
+  simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+  simulationData.positionPredator.push([predator.x, predator.y]);
+}
+
+// Main animation loop
+function animationLoop() {
+  boidsAnimation();
+  predatorAnimation();
+  
+  if (activePredator){
+    capturedBoids = boids.filter(boid => distance(predator, boid) < 5);
+    for (i = 0; i < capturedBoids.length; i++){
+      simulationData.captures.push(Date.now() - simulationData.simulationStartTime);
+    }
+  
+    // Remove a captured boid from boids
+    boids = boids.filter(boid => distance(predator, boid) >= 5);
+  
+    const boidsCapturedCounter = document.getElementById("boidsCapturedCounter");
+    amountOfCaptures += capturedBoids.length;
+    boidsCapturedCounter.innerHTML = "Amount of birds captured: " + amountOfCaptures;
+  }
+  else {
+    boidsCapturedCounter.innerHTML = "Amount of birds captured: 0";
+  }
+  
   // Clear the canvas and redraw all the boids in their current positions
   const ctx = document.getElementById("boids").getContext("2d");
   ctx.clearRect(0, 0, width, height);
@@ -572,8 +589,9 @@ function animationLoop() {
   drawPredator(ctx, predator);
 
   // If the simulation has ended, collect data and then run again
-  if (boids.length == 0) {
+  if (boids.length <= numBoids - 1) {
     simulationRunning = false;
+    activePredator = false;
     addDataToArray();
     resetSimulation();
     runSimulation();
