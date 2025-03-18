@@ -17,7 +17,7 @@ let simulationRunning = false;
 let numBoids = 100; // Amount of Boids on the canvas
 let visualRangeBoid = 75; // Visual range of the boids
 let visualRangePredator = 75; // Visual range of the predators
-let speedLimit = 15;  // Speed limit of the birds
+let speedLimit = 12;  // Speed limit of the birds
 let minDistance = 20; // Minimum distance between boids
 let centeringFactor = 0.005; // Determines the coherence between boids 
 let matchingFactor = 0.5; // Determines how fast the aligment is reached
@@ -145,16 +145,6 @@ function initPredator() {
 }
 
 
-// ************ Simulation ***********/
-function nClosestBoids(boid, n) {
-  // Make a copy
-  const sorted = boids.slice();
-  // Sort the copy by distance from `boid`
-  sorted.sort((a, b) => distance(boid, a) - distance(boid, b));
-  // Return the `n` closest
-  return sorted.slice(1, n + 1);
-}
-
 // ************ Predator Strategy's ***********/
 // The predator will not move if there are no boids in the visual range 
 // But if there are boids in the visual range, the predator will move towards the closest boid
@@ -197,6 +187,17 @@ function chaseClosest(predator){
  
   predator.dx += moveX * chaseFactor;
   predator.dy += moveY * chaseFactor;
+}
+
+
+// ************ Simulation ***********/
+function nClosestBoids(boid, n) {
+  // Make a copy
+  const sorted = boids.slice();
+  // Sort the copy by distance from `boid`
+  sorted.sort((a, b) => distance(boid, a) - distance(boid, b));
+  // Return the `n` closest
+  return sorted.slice(1, n + 1);
 }
 
 // Returns the boid that is closest to the given predator
@@ -299,6 +300,8 @@ function avoidPredators(boid) {
 
 // Find the average velocity (speed and direction) of the other boids and
 // adjust velocity slightly to match.
+// This is a different method then the one from Ben eater, took inspiration from:
+// Math the beautiful. (2021, 13 september). Interactive Dot product of two vectors. Math The Beautiful. Used on 17 maart 2025, van https://maththebeautiful.com/dot-product/
 function matchVelocity(boid) {
   let avgDX = 0;
   let avgDY = 0;
@@ -364,6 +367,7 @@ function distance(boid1, boid2) {
   );
 }
 
+// ************ Drawing ***********/
 function drawPredator(ctx, predator) {
   const angle = Math.atan2(predator.dy, predator.dx);
   ctx.translate(predator.x, predator.y);
@@ -439,6 +443,7 @@ function runSimulation() {
     simulationData.simulationStartTime = Date.now();
 }
 
+// ************ Data Collection ***********/
 function addDataToArray() {
 
   // Add the missing data from the simulation to the simulationData 
