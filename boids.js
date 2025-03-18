@@ -26,6 +26,8 @@ var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 
+const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
+
 // Birds
 var boids = [];
 var predator;
@@ -451,7 +453,7 @@ function runSimulation() {
 
     setTimeout(() => {
       activePredator = true;  // Predator is now active
-    }, 3000);
+    }, PREDATOR_DELAY);
 }
 
 // ************ Data Collection ***********/
@@ -459,7 +461,7 @@ function addDataToArray() {
 
   // Add the missing data from the simulation to the simulationData 
   simulationData.simulationEndTime = Date.now();
-  simulationData.totalTime = (simulationData.simulationEndTime + 3000) - simulationData.simulationStartTime;
+  simulationData.totalTime = (simulationData.simulationEndTime + PREDATOR_DELAY) - simulationData.simulationStartTime;
 
   // Create a new row for the data from this rounds simulation
   const dataRow = [
