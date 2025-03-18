@@ -14,13 +14,13 @@ let settingsOpen = false;
 let simulationRunning = false; 
 
 // Simulation settings
-let numBoids = 100; // Amount of Boids on the canvas
-let visualRangeBoid = 75; // Visual range of the boids
-let visualRangePredator = 75; // Visual range of the predators
+let numBoids = 1189; // Amount of Boids on the canvas
+let visualRangeBoid = 100; // Visual range of the boids
+let visualRangePredator = 100; // Visual range of the predators
 let speedLimit = 12;  // Speed limit of the birds
-let minDistance = 20; // Minimum distance between boids
-let centeringFactor = 0.005; // Determines the coherence between boids 
-let matchingFactor = 0.5; // Determines how fast the aligment is reached
+let minDistance = 5; // Minimum distance between boids
+let centeringFactor = 0.0035; // Determines the coherence between boids 
+let matchingFactor = 0.3; // Determines how fast the aligment is reached
 let targetPolarization = 0.96; // The desired polarization from real starling data
 var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
@@ -392,8 +392,8 @@ function drawBoid(ctx, boid) {
   ctx.fillStyle = "#558cf4";
   ctx.beginPath();
   ctx.moveTo(boid.x, boid.y);
-  ctx.lineTo(boid.x - 15, boid.y + 5);
-  ctx.lineTo(boid.x - 15, boid.y - 5);
+  ctx.lineTo(boid.x - 2, boid.y + 1);
+  ctx.lineTo(boid.x - 2, boid.y - 1);
   ctx.lineTo(boid.x, boid.y);
   ctx.fill();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
