@@ -15,8 +15,9 @@ let simulationRunning = false;
 
 // Simulation settings
 let numBoids = 1189; // Amount of Boids on the canvas
-let visualRangeBoid = 100; // Visual range of the boids
-let visualRangePredator = 50; // Visual range of the predators
+let visualRangeBoid = 50; // Visual range of the boids
+let visualRangePredator = 100; // Visual range of the predators
+let ambushRange = 100;
 let speedLimit = 12;  // Speed limit of the birds
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0035; // Determines the coherence between boids 
@@ -155,12 +156,18 @@ function chaseAmbush(predator){
   let moveX = 0;
   let moveY = 0;
 
-  if (distance(boid,predator) < visualRangePredator){
+  if (distance(boid,predator) < ambushRange){
     moveX = boid.x - predator.x;
     moveY = boid.y - predator.y; 
+
+    predator.dx += moveX * chaseFactor;
+    predator.dy += moveY * chaseFactor;
   }
-  predator.dx += moveX * chaseFactor;
-  predator.dy += moveY * chaseFactor;
+  else {
+    predator.dx = 0;
+    predator.dy = 0;
+  }
+
 }
 
 // The predator will choose a random boid and chase it
