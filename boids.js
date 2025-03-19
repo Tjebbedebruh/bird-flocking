@@ -25,8 +25,9 @@ let targetPolarization = 0.96; // The desired polarization from real starling da
 var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
-
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
+
+let timesToRun = 14; // Amount of times that the simulation has to run to get data -1
 
 // Birds
 var boids = [];
@@ -594,6 +595,18 @@ function animationLoop() {
   if (boids.length <= numBoids - 1) {
     simulationRunning = false;
     activePredator = false;
+    if (timesToRun == 0) return;
+    if (timesToRun > 10){
+      currentStrategy = Strategy.CLOSEST;
+    }
+    else if (timesToRun > 5) {
+      currentStrategy = Strategy.PERSUIT;
+    }
+    else if (timesToRun > 0){
+      currentStrategy = Strategy.AMBUSH;
+    }
+    timesToRun -= 1;
+    
     addDataToArray();
     resetSimulation();
     runSimulation();
