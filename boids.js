@@ -5,7 +5,7 @@ let height = 150;
 // Strategy's 
 const Strategy = Object.freeze({ // enum
   CLOSEST: "closest",
-  PERSUIT: "persuit",
+  RANDOM: "random",
   AMBUSH: "ambush",
 });
 
@@ -178,7 +178,7 @@ function chaseAmbush(predator){
 // The predator will choose a random boid and chase it
 let randomBoid = Math.floor(Math.random() * boids.length);
 
-function chasePersuit(predator){
+function chaseRandom(predator){
   const boid = boids[randomBoid];
   const chaseFactor = 0.05; // Adjust velocity by this %
 
@@ -542,8 +542,8 @@ function predatorAnimation() {
   if (currentStrategy == Strategy.CLOSEST){ 
     chaseClosest(predator);
   }
-  else if (currentStrategy == Strategy.PERSUIT){
-    chasePersuit(predator);
+  else if (currentStrategy == Strategy.RANDOM){
+    chaseRandom(predator);
   }
   else if (currentStrategy == Strategy.AMBUSH){
     chaseAmbush(predator);
@@ -602,7 +602,7 @@ function animationLoop() {
       currentStrategy = Strategy.CLOSEST;
     }
     else if (timesToRun > TIMES_RUN_PER_STRAT) {
-      currentStrategy = Strategy.PERSUIT;
+      currentStrategy = Strategy.RANDOM;
     }
     else if (timesToRun > 0){
       currentStrategy = Strategy.AMBUSH;
