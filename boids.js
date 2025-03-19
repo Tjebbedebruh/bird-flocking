@@ -28,6 +28,8 @@ let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
 
 let timesToRun = 14; // Amount of times that the simulation has to run to get data -1
+const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
+
 
 // Birds
 var boids = [];
@@ -596,10 +598,10 @@ function animationLoop() {
     simulationRunning = false;
     activePredator = false;
     if (timesToRun == 0) return;
-    if (timesToRun > 10){
+    if (timesToRun > (TIMES_RUN_PER_STRAT * 2)){
       currentStrategy = Strategy.CLOSEST;
     }
-    else if (timesToRun > 5) {
+    else if (timesToRun > TIMES_RUN_PER_STRAT) {
       currentStrategy = Strategy.PERSUIT;
     }
     else if (timesToRun > 0){
