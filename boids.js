@@ -464,7 +464,7 @@ function addDataToArray() {
 
   // Add the missing data from the simulation to the simulationData 
   simulationData.simulationEndTime = Date.now();
-  simulationData.totalTime = (simulationData.simulationEndTime + PREDATOR_DELAY) - simulationData.simulationStartTime;
+  simulationData.totalTime = simulationData.simulationEndTime - simulationData.simulationStartTime - PREDATOR_DELAY;
 
   // Create a new row for the data from this rounds simulation
   const dataRow = [
