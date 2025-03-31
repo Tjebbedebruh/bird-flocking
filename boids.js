@@ -18,7 +18,7 @@ let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimitBird = 12;  // Speed limit of the birds
-let speedLimitpredator = 190; // Speed limit of the predator
+let speedLimitpredator = 28; // Speed limit of the predator
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
@@ -377,8 +377,8 @@ function limitSpeedBird(bird) {
 function limitSpeedPredator(predator) {
   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
   if (speed > speedLimitpredator) {
-    predator.dx = (predator.dx / speed) * speedLimitPredator;
-    predator.dy = (predator.dy / speed) * speedLimitPredator;
+    predator.dx = (predator.dx / speed) * speedLimitpredator;
+    predator.dy = (predator.dy / speed) * speedLimitpredator;
   }
 }
 
