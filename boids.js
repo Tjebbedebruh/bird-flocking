@@ -17,7 +17,8 @@ let simulationRunning = false;
 let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
-let speedLimit = 12;  // Speed limit of the birds
+let speedLimitBird = 12;  // Speed limit of the birds
+let speedLimitpredator = 190; // Speed limit of the predator
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
@@ -26,7 +27,8 @@ var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
-
+//let energySpent = 0; // Energy spent by the predator based on speed fluctuations
+//let preferedSpeed = 8; // (m/s) The prefered speed of the predator according to (Askew & Ellerby, 2007)
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
 
@@ -107,7 +109,7 @@ ambushRangepredatorSelect.addEventListener("change", () => {
 
 // Bird speed
 birdSpeedSelect.addEventListener("change", () => {
-  speedLimit = parseInt(birdSpeedSelect.value);
+  speedLimitBird = parseInt(birdSpeedSelect.value);
 });
 
 // Strategy
@@ -364,11 +366,19 @@ function matchVelocity(boid) {
 
 // Speed will naturally vary in flocking behavior, but real animals can't go
 // arbitrarily fast.
-function limitSpeed(bird) {
+function limitSpeedBird(bird) {
   const speed = Math.sqrt(bird.dx * bird.dx + bird.dy * bird.dy);
-  if (speed > speedLimit) {
-    bird.dx = (bird.dx / speed) * speedLimit;
-    bird.dy = (bird.dy / speed) * speedLimit;
+  if (speed > speedLimitBird) {
+    bird.dx = (bird.dx / speed) * speedLimitBird;
+    bird.dy = (bird.dy / speed) * speedLimitBird;
+  }
+}
+
+function limitSpeedPredator(predator) {
+  const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+  if (speed > speedLimitpredator) {
+    predator.dx = (predator.dx / speed) * speedLimitPredator;
+    predator.dy = (predator.dy / speed) * speedLimitPredator;
   }
 }
 
@@ -447,7 +457,7 @@ function runSimulation() {
       targetPolarization: targetPolarization,
       visualRangeBoid: visualRangeBoid,
       ambushRangepredator: ambushRangepredator,
-      speedLimit: speedLimit,
+      speedLimitBird: speedLimitBird,
       strategy: currentStrategy,
       width: width,
       height: height,
@@ -471,7 +481,7 @@ function addDataToArray() {
     simulationData.settings.numBoids,
     simulationData.settings.visualRangeBoid,
     simulationData.settings.ambushRangepredator,
-    simulationData.settings.speedLimit,
+    simulationData.settings.speedLimitBird,
     simulationData.settings.seperation,
     simulationData.settings.coherence,
     simulationData.settings.alignment,
@@ -525,7 +535,7 @@ function boidsAnimation() {
     avoidPredators(boid);
     matchVelocity(boid);
     keepWithinBounds(boid);
-    limitSpeed(boid);
+    limitSpeedBird(boid);
 
     // Update the position based on the current velocity
     boid.x += boid.dx;
@@ -550,7 +560,7 @@ function predatorAnimation() {
   }
 
   keepWithinBounds(predator);
-  limitSpeed(predator);
+  limitSpeedPredator(predator);
 
   // Update the position based on the current velocity
   predator.x += predator.dx;
@@ -594,7 +604,7 @@ function animationLoop() {
   drawPredator(ctx, predator);
 
   // If the simulation has ended, collect data and then run again
-  if (boids.length <= numBoids - 1) {
+  if (boids.length <= numBoids - 500) {
     simulationRunning = false;
     activePredator = false;
     if (timesToRun == 0) return;
