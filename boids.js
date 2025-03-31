@@ -27,8 +27,9 @@ var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
+let preferedSpeedPredator = 11; // (m/s) The prefered speed of the predator according to (The Flying Speed Of Hawks, z.d.)
 //let energySpent = 0; // Energy spent by the predator based on speed fluctuations
-//let preferedSpeed = 8; // (m/s) The prefered speed of the predator according to (Askew & Ellerby, 2007)
+
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
 
@@ -171,10 +172,15 @@ function chaseAmbush(predator){
     predator.dy += moveY * chaseFactor;
   }
   else {
-    predator.dx = 0;
-    predator.dy = 0;
+    const currentSpeed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+    
+    // If the predator is not moving at it's usual crusing speed, make it go faster
+    if (currentSpeed < preferedSpeedPredator) {
+        const scaleFactor = preferedSpeedPredator / currentSpeed;
+        predator.dx += scaleFactor * 0.1;
+        predator.dy += scaleFactor * 0.1;
+    }
   }
-
 }
 
 // The predator will choose a random boid and chase it
