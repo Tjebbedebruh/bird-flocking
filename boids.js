@@ -32,6 +32,7 @@ let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
 let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
 let predatorIsClose = false; // Predator is not closer than ambushRangepredator to a boid
 let burstTime = 1000; // Time in ms that the predator will be in a burst
+let ambushTimeout; // ID of timeout for the burst of the predator
 
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
@@ -210,7 +211,7 @@ function calculatePredatorEnergy(predator) {
 // But if there are boids in the visual range, the predator will move towards the closest boid
 function chaseAmbush(predator){
   const boid = predatorsClosestBoid(predator);
-  const chaseFactor = 0.05; // Adjust velocity by this %
+  const chaseFactor = 0.025; // Adjust velocity by this %
 
   let moveX = 0;
   let moveY = 0;
@@ -223,9 +224,11 @@ function chaseAmbush(predator){
       setTimeout(() => {
         predatorIsClose = false;
       }, burstTime); // 1-second burst
-      setTimeout(() => {
+
+      ambushTimeout = setTimeout(() => {
         ambushRangepredator = 60; // set it back to the origional value
       }, 3000); // 1-second burst
+
       break; 
     }
   }
@@ -713,6 +716,8 @@ function animationLoop() {
 function resetSimulation () {
   boids = [];
   amountOfCaptures = 0;
+  ambushRangepredator = 60;
+  clearTimeout(ambushTimeout);
   initBoids();
   initPredator();
 
