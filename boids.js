@@ -18,7 +18,8 @@ let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimitBird = 12;  // Speed limit of the birds
-let speedLimitPredator = 28; // Speed limit of the predator
+let speedLimitPredator = 28; // Speed limit of the predator when bot in a burst
+let speedPredatorBurst = 50; // Speed limit of the predator when in a burst
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
@@ -31,6 +32,7 @@ let preferedSpeedPredator = 11; // (m/s) The prefered speed of the predator acco
 let energySpent = 0; // Energy spent by the predator based on speed fluctuations
 let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
 let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
+let predatorIsClose = false; // Predator is not closer than ambushRangepredator to a boid
 
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
@@ -430,11 +432,32 @@ function limitSpeedBird(bird) {
   }
 }
 
+// function limitSpeedPredator(predator) {
+//   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+//   if (speed > speedLimitPredator) {
+//     predator.dx = (predator.dx / speed) * speedLimitPredator;
+//     predator.dy = (predator.dy / speed) * speedLimitPredator;
+//   }
+// }
+
+
 function limitSpeedPredator(predator) {
+  for (let boid of boids) {
+    if (distance(boid, predator) < ambushRangepredator && close != true) {
+      predatorIsClose = true;
+      setTimeout(() => {
+        predatorIsClose = false;
+      }, 1000);
+    }
+  }
+
   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-  if (speed > speedLimitPredator) {
-    predator.dx = (predator.dx / speed) * speedLimitPredator;
-    predator.dy = (predator.dy / speed) * speedLimitPredator;
+  let speedLimit = speedLimitPredator;
+  if (predatorIsClose) speedLimit = speedPredatorBurst;
+
+  if (speed > speedLimit) {
+    predator.dx = (predator.dx / speed) * speedLimit;
+    predator.dy = (predator.dy / speed) * speedLimit;
   }
 }
 
