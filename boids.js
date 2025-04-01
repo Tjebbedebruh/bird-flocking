@@ -19,7 +19,6 @@ let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimitBird = 12;  // Speed limit of the birds
 let speedLimitPredator = 28; // Speed limit of the predator when bot in a burst
-let speedPredatorBurst = 50; // Speed limit of the predator when in a burst
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
