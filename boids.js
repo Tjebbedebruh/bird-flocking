@@ -28,7 +28,9 @@ let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
 let preferedSpeedPredator = 11; // (m/s) The prefered speed of the predator according to (The Flying Speed Of Hawks, z.d.)
-//let energySpent = 0; // Energy spent by the predator based on speed fluctuations
+let energySpent = 0; // Energy spent by the predator based on speed fluctuations
+let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
+let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
 
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
@@ -37,7 +39,6 @@ const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
 // Birds
 var boids = [];
 var predator;
-
 let allSimulationData = []; // Array to holds the data of multiple simulation rounds
 var amountOfCaptures = 0; // amount of boids that have been captured
 
@@ -158,6 +159,48 @@ function initPredator() {
     dy: Math.random() * 10 - 5,
     history: [],  // For drawing the trail
   };
+}
+
+function calculatePredatorEnergy(predator) {
+  if (!activePredator) return;
+  
+  const currentSpeed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
+  
+  // Store previous velocity to calculate turning
+  if (!predator.prevDx) {
+    predator.prevDx = predator.dx;
+    predator.prevDy = predator.dy;
+  }
+  
+  // Calculate turn sharpness using dot product between current and previous velocity
+  const prevSpeed = Math.sqrt(predator.prevDx * predator.prevDx + predator.prevDy * predator.prevDy);
+  
+  let turnSharpness = 0;
+  if (prevSpeed > 0 && currentSpeed > 0) {
+    const dotProduct = (predator.dx * predator.prevDx + predator.dy * predator.prevDy) / (currentSpeed * prevSpeed); // dot product of change in direction
+    turnSharpness = Math.acos(Math.max(-1, Math.min(1, dotProduct))) * (180 / Math.PI); // convert to degrees
+  }
+  
+  // exponantially increase in energy cost for higher speeds
+  let speedCost = 0;
+  if (currentSpeed > preferedSpeedPredator) {
+    const excessSpeed = currentSpeed - preferedSpeedPredator;
+    speedCost = excessSpeed * excessSpeed * speedEnergyFactor;
+  }
+  
+  // Energy cost based on turning
+  let turnCost = turnSharpness * turnEnergyFactor;
+  
+  // Total energy cost for this frame
+  const totalCost = Math.round(speedCost + turnCost);
+  
+  // Add to total energy spent
+  energySpent += totalCost;
+  
+  // Store current velocity for next frame's turn calculation
+  predator.prevDx = predator.dx;
+  predator.prevDy = predator.dy;
+
 }
 
 
@@ -392,7 +435,6 @@ function limitSpeedPredator(predator) {
   if (speed > speedLimitPredator) {
     predator.dx = (predator.dx / speed) * speedLimitPredator;
     predator.dy = (predator.dy / speed) * speedLimitPredator;
-    console.log(speedLimitPredator);
   }
 }
 
@@ -454,6 +496,7 @@ function toggleSimulation() {
     startButton.style.backgroundColor = "#52c655"; 
     startButton.value = "Start";
     simulationData.simulationEndTime = Date.now();
+    simulationData.energySpent = energySpent;
   }
 }
 
@@ -505,7 +548,8 @@ function addDataToArray() {
     simulationData.settings.strategy,
     simulationData.totalTime,
     simulationData.captures.length,
-    parseFloat(simulationData.traveledDistance.toFixed(2))
+    parseFloat(simulationData.traveledDistance.toFixed(2)),
+    simulationData.energySpent
   ];
   
   // Add the data to the array which contains all the data from all simulation rounds
@@ -529,7 +573,8 @@ function exportData() {
     "Predator Strategy", 
     "Total Time (ms)", 
     "Captures", 
-    "Traveled Distance"
+    "Traveled Distance",
+    "Energy Spent"
   ];
 
   // Convert to Excel
@@ -578,6 +623,7 @@ function predatorAnimation() {
 
   keepWithinBounds(predator);
   limitSpeedPredator(predator);
+  calculatePredatorEnergy(predator);
 
   // Update the position based on the current velocity
   predator.x += predator.dx;
