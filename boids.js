@@ -219,9 +219,13 @@ function chaseAmbush(predator){
     if (distance(boid, predator) < ambushRangepredator && !predatorIsClose) { 
       predatorIsClose = true;
       boidInRange = true;
+      ambushRangepredator = 0; // disable the burst for 3 seconds
       setTimeout(() => {
         predatorIsClose = false;
       }, burstTime); // 1-second burst
+      setTimeout(() => {
+        ambushRangepredator = 60; // set it back to the origional value
+      }, 3000); // 1-second burst
       break; 
     }
   }
