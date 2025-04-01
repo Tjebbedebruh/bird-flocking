@@ -246,12 +246,10 @@ function chaseAmbush(predator){
   }
 }
 
+// The predator will choose a random boid and chase it
+let randomBoid = Math.floor(Math.random() * boids.length);
 
 function chaseRandom(predator){
-
-  // The predator will choose a random boid and chase it
-  let randomBoid = Math.floor(Math.random() * boids.length);
-
   const boid = boids[randomBoid];
   const chaseFactor = 0.05; // Adjust velocity by this %
 
@@ -691,10 +689,10 @@ function animationLoop() {
     activePredator = false;
     if (timesToRun == 0) return;
     if (timesToRun > (TIMES_RUN_PER_STRAT * 2)){
-      currentStrategy = Strategy.AMBUSH;
+      currentStrategy = Strategy.RANDOM;
     }
     else if (timesToRun > TIMES_RUN_PER_STRAT) {
-      currentStrategy = Strategy.RANDOM;
+      currentStrategy = Strategy.AMBUSH;
     }
     else if (timesToRun > 0){
       currentStrategy = Strategy.CLOSEST;
