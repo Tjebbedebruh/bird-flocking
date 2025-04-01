@@ -18,7 +18,7 @@ let numBoids = 1189; // Amount of Boids on the canvas
 let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimitBird = 12;  // Speed limit of the birds
-let speedLimitpredator = 28; // Speed limit of the predator
+let speedLimitPredator = 28; // Speed limit of the predator
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
@@ -65,6 +65,7 @@ const alignmentSelect = document.getElementById("alignmentSelect");
 const visualRangeBoidSelect = document.getElementById("visualRangeBoidSelect");
 const ambushRangepredatorSelect = document.getElementById("ambushRangepredatorSelect");
 const birdSpeedSelect  = document.getElementById("birdSpeedSelect");
+const predatorSpeedSelect = document.getElementById("predatorSpeedSelect");
 const strategySelect = document.getElementById("strategySelect");
 const startButton = document.getElementById("startButton");
 const exportDataButton = document.getElementById("exportDataButton");
@@ -112,6 +113,12 @@ ambushRangepredatorSelect.addEventListener("change", () => {
 birdSpeedSelect.addEventListener("change", () => {
   speedLimitBird = parseInt(birdSpeedSelect.value);
 });
+
+// Predator speed
+predatorSpeedSelect.addEventListener("change", () => {
+  speedLimitPredator = parseInt(predatorSpeedSelect.value);
+});
+
 
 // Strategy
 strategySelect.addEventListener("change", () => { 
@@ -382,9 +389,10 @@ function limitSpeedBird(bird) {
 
 function limitSpeedPredator(predator) {
   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-  if (speed > speedLimitpredator) {
-    predator.dx = (predator.dx / speed) * speedLimitpredator;
-    predator.dy = (predator.dy / speed) * speedLimitpredator;
+  if (speed > speedLimitPredator) {
+    predator.dx = (predator.dx / speed) * speedLimitPredator;
+    predator.dy = (predator.dy / speed) * speedLimitPredator;
+    console.log(speedLimitPredator);
   }
 }
 
@@ -464,6 +472,7 @@ function runSimulation() {
       visualRangeBoid: visualRangeBoid,
       ambushRangepredator: ambushRangepredator,
       speedLimitBird: speedLimitBird,
+      speedLimitPredator: speedLimitPredator,
       strategy: currentStrategy,
       width: width,
       height: height,
@@ -488,6 +497,7 @@ function addDataToArray() {
     simulationData.settings.visualRangeBoid,
     simulationData.settings.ambushRangepredator,
     simulationData.settings.speedLimitBird,
+    simulationData.settings.speedLimitPredator,
     simulationData.settings.seperation,
     simulationData.settings.coherence,
     simulationData.settings.alignment,
@@ -510,7 +520,8 @@ function exportData() {
     "Number of Boids", 
     "Visual Range (Boid)", 
     "Visual Range (Predator)", 
-    "Speed Limit", 
+    "Speed Limit Birds",
+    "Speed Limit Predator",
     "Min Distance", 
     "Centering Factor", 
     "Matching Factor", 
