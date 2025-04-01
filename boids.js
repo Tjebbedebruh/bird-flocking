@@ -24,7 +24,7 @@ let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
 let targetPolarization = 0.96; // The desired polarization from real starling data
-var currentStrategy = Strategy.CLOSEST; // Strategy to use for the predator
+var currentStrategy = Strategy.AMBUSH; // Strategy to use for the predator
 let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
@@ -33,6 +33,7 @@ let energySpent = 0; // Energy spent by the predator based on speed fluctuations
 let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
 let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
 let predatorIsClose = false; // Predator is not closer than ambushRangepredator to a boid
+let burstTime = 1000; // Time in ms that the predator will be in a burst
 
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
@@ -216,29 +217,41 @@ function chaseAmbush(predator){
   let moveX = 0;
   let moveY = 0;
 
-  if (distance(boid,predator) < ambushRangepredator){
+  for (let boid of boids) {
+    if (distance(boid, predator) < ambushRangepredator && !predatorIsClose) { 
+      predatorIsClose = true;
+      boidInRange = true;
+      setTimeout(() => {
+        predatorIsClose = false;
+      }, burstTime); // 1-second burst
+      break; 
+    }
+  }
+  
+  if (predatorIsClose) {
     moveX = boid.x - predator.x;
-    moveY = boid.y - predator.y; 
-
+    moveY = boid.y - predator.y;
     predator.dx += moveX * chaseFactor;
     predator.dy += moveY * chaseFactor;
   }
   else {
     const currentSpeed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-    
+
     // If the predator is not moving at it's usual crusing speed, make it go faster
     if (currentSpeed < preferedSpeedPredator) {
-        const scaleFactor = preferedSpeedPredator / currentSpeed;
-        predator.dx += scaleFactor * 0.1;
-        predator.dy += scaleFactor * 0.1;
+      const scaleFactor = preferedSpeedPredator / currentSpeed;
+      predator.dx *= scaleFactor;
+      predator.dy *= scaleFactor;
     }
   }
 }
 
-// The predator will choose a random boid and chase it
-let randomBoid = Math.floor(Math.random() * boids.length);
 
 function chaseRandom(predator){
+
+  // The predator will choose a random boid and chase it
+  let randomBoid = Math.floor(Math.random() * boids.length);
+
   const boid = boids[randomBoid];
   const chaseFactor = 0.05; // Adjust velocity by this %
 
@@ -432,34 +445,15 @@ function limitSpeedBird(bird) {
   }
 }
 
-// function limitSpeedPredator(predator) {
-//   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-//   if (speed > speedLimitPredator) {
-//     predator.dx = (predator.dx / speed) * speedLimitPredator;
-//     predator.dy = (predator.dy / speed) * speedLimitPredator;
-//   }
-// }
-
-
 function limitSpeedPredator(predator) {
-  for (let boid of boids) {
-    if (distance(boid, predator) < ambushRangepredator && close != true) {
-      predatorIsClose = true;
-      setTimeout(() => {
-        predatorIsClose = false;
-      }, 1000);
-    }
-  }
-
   const speed = Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
-  let speedLimit = speedLimitPredator;
-  if (predatorIsClose) speedLimit = speedPredatorBurst;
 
-  if (speed > speedLimit) {
-    predator.dx = (predator.dx / speed) * speedLimit;
-    predator.dy = (predator.dy / speed) * speedLimit;
+  if (speed > speedLimitPredator) {
+    predator.dx = (predator.dx / speed) * speedLimitPredator;
+    predator.dy = (predator.dy / speed) * speedLimitPredator;
   }
 }
+
 
 function distance(boid1, boid2) {
   return Math.sqrt(
@@ -470,6 +464,7 @@ function distance(boid1, boid2) {
 
 // ************ Drawing ***********/
 function drawPredator(ctx, predator) {
+  console.log(currentStrategy);
   const angle = Math.atan2(predator.dy, predator.dx);
   ctx.translate(predator.x, predator.y);
   ctx.rotate(angle);
@@ -660,6 +655,7 @@ function predatorAnimation() {
 
 // Main animation loop
 function animationLoop() {
+  
   boidsAnimation();
   predatorAnimation();
   
@@ -695,13 +691,13 @@ function animationLoop() {
     activePredator = false;
     if (timesToRun == 0) return;
     if (timesToRun > (TIMES_RUN_PER_STRAT * 2)){
-      currentStrategy = Strategy.CLOSEST;
+      currentStrategy = Strategy.AMBUSH;
     }
     else if (timesToRun > TIMES_RUN_PER_STRAT) {
       currentStrategy = Strategy.RANDOM;
     }
     else if (timesToRun > 0){
-      currentStrategy = Strategy.AMBUSH;
+      currentStrategy = Strategy.CLOSEST;
     }
     timesToRun -= 1;
     
