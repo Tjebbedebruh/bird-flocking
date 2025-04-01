@@ -687,13 +687,13 @@ function animationLoop() {
     activePredator = false;
     if (timesToRun == 0) return;
     if (timesToRun > (TIMES_RUN_PER_STRAT * 2)){
-      currentStrategy = Strategy.RANDOM;
-    }
-    else if (timesToRun > TIMES_RUN_PER_STRAT) {
       currentStrategy = Strategy.AMBUSH;
     }
-    else if (timesToRun > 0){
+    else if (timesToRun > TIMES_RUN_PER_STRAT) {
       currentStrategy = Strategy.CLOSEST;
+    }
+    else if (timesToRun > 0){
+      currentStrategy = Strategy.RANDOM;
     }
     timesToRun -= 1;
     
