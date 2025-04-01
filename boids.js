@@ -29,7 +29,6 @@ let DRAW_TRAIL = false; // Draw the trail of the boids
 let activePredator = false; // Let the predator chase the boids
 const PREDATOR_DELAY = 3000; // Delay of the predator to start chasing in ms
 let preferedSpeedPredator = 11; // (m/s) The prefered speed of the predator according to (The Flying Speed Of Hawks, z.d.)
-let energySpent = 0; // Energy spent by the predator based on speed fluctuations
 let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
 let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
 let predatorIsClose = false; // Predator is not closer than ambushRangepredator to a boid
@@ -198,7 +197,7 @@ function calculatePredatorEnergy(predator) {
   const totalCost = Math.round(speedCost + turnCost);
   
   // Add to total energy spent
-  energySpent += totalCost;
+  simulationData.energySpent += totalCost;
   
   // Store current velocity for next frame's turn calculation
   predator.prevDx = predator.dx;
@@ -646,7 +645,6 @@ function predatorAnimation() {
   predator.history.push([predator.x, predator.y])
   predator.history = predator.history.slice(-50);
 
-  simulationData.energySpent = energySpent;
   simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
   simulationData.positionPredator.push([predator.x, predator.y]);
 }
