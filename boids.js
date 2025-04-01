@@ -496,7 +496,6 @@ function toggleSimulation() {
     startButton.style.backgroundColor = "#52c655"; 
     startButton.value = "Start";
     simulationData.simulationEndTime = Date.now();
-    simulationData.energySpent = energySpent;
   }
 }
 
@@ -631,6 +630,7 @@ function predatorAnimation() {
   predator.history.push([predator.x, predator.y])
   predator.history = predator.history.slice(-50);
 
+  simulationData.energySpent = energySpent;
   simulationData.traveledDistance += Math.sqrt(predator.dx * predator.dx + predator.dy * predator.dy);
   simulationData.positionPredator.push([predator.x, predator.y]);
 }
@@ -667,7 +667,7 @@ function animationLoop() {
   drawPredator(ctx, predator);
 
   // If the simulation has ended, collect data and then run again
-  if (boids.length <= numBoids - 500) {
+  if (boids.length <= numBoids - 1) {
     simulationRunning = false;
     activePredator = false;
     if (timesToRun == 0) return;
@@ -704,7 +704,8 @@ function resetSimulation () {
     positionPredator: [],
     simulationStartTime: null,
     simulationEndTime: null,
-    traveledDistance: 0
+    traveledDistance: 0,
+    energySpent: 0
   };
 }
 
