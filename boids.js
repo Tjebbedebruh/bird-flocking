@@ -227,7 +227,7 @@ function chaseAmbush(predator){
 
       ambushTimeout = setTimeout(() => {
         ambushRangepredator = 60; // set it back to the origional value
-      }, 3000); // 1-second burst
+      }, 3000); // after 3 seconds the burst can be used again
 
       break; 
     }
