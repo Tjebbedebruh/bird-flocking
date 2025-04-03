@@ -174,7 +174,7 @@ function calculatePredatorEnergy(predator) {
     predator.prevDy = predator.dy;
   }
   
-  // Calculate turn sharpness using dot product between current and previous velocity
+  // Calculate turn sharpness using dot product between current and previous velocity (Math the beautiful. (2021, 13 september). Interactive Dot product of two vectors. Math The Beautiful. Geraadpleegd op 1 april 2025, van https://maththebeautiful.com/dot-product/)
   const prevSpeed = Math.sqrt(predator.prevDx * predator.prevDx + predator.prevDy * predator.prevDy);
   
   let turnSharpness = 0;
