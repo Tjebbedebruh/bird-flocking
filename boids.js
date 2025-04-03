@@ -19,7 +19,6 @@ let visualRangeBoid = 50; // Visual range of the boids
 let ambushRangepredator = 60; // Range in which the predator will ambush the boids
 let speedLimitBird = 12;  // Speed limit of the birds
 let speedLimitPredator = 28; // Speed limit of the predator when bot in a burst
-let speedPredatorBurst = 50; // Speed limit of the predator when in a burst
 let minDistance = 5; // Minimum distance between boids
 let centeringFactor = 0.0075; // Determines the coherence between boids 
 let matchingFactor = 0.3; // Determines how fast the aligment is reached
@@ -33,6 +32,7 @@ let speedEnergyFactor = 0.1; // Energy cost multiplier for high speeds
 let turnEnergyFactor = 0.05; // Energy cost multiplier for sharp turns
 let predatorIsClose = false; // Predator is not closer than ambushRangepredator to a boid
 let burstTime = 1000; // Time in ms that the predator will be in a burst
+let ambushTimeout; // ID of timeout for the burst of the predator
 
 let timesToRun = 299; // Amount of times that the simulation has to run to get data -1
 const TIMES_RUN_PER_STRAT = (timesToRun + 1) / 3;
@@ -211,7 +211,7 @@ function calculatePredatorEnergy(predator) {
 // But if there are boids in the visual range, the predator will move towards the closest boid
 function chaseAmbush(predator){
   const boid = predatorsClosestBoid(predator);
-  const chaseFactor = 0.05; // Adjust velocity by this %
+  const chaseFactor = 0.025; // Adjust velocity by this %
 
   let moveX = 0;
   let moveY = 0;
@@ -220,9 +220,15 @@ function chaseAmbush(predator){
     if (distance(boid, predator) < ambushRangepredator && !predatorIsClose) { 
       predatorIsClose = true;
       boidInRange = true;
+      ambushRangepredator = 0; // disable the burst for 3 seconds
       setTimeout(() => {
         predatorIsClose = false;
       }, burstTime); // 1-second burst
+
+      ambushTimeout = setTimeout(() => {
+        ambushRangepredator = 60; // set it back to the origional value
+      }, 3000); // after 3 seconds the burst can be used again
+
       break; 
     }
   }
@@ -710,6 +716,8 @@ function animationLoop() {
 function resetSimulation () {
   boids = [];
   amountOfCaptures = 0;
+  ambushRangepredator = 60;
+  clearTimeout(ambushTimeout);
   initBoids();
   initPredator();
 
