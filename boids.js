@@ -122,7 +122,6 @@ predatorSpeedSelect.addEventListener("change", () => {
   speedLimitPredator = parseInt(predatorSpeedSelect.value);
 });
 
-
 // Strategy
 strategySelect.addEventListener("change", () => { 
   currentStrategy = strategySelect.value;
@@ -138,7 +137,6 @@ exportDataButton.addEventListener("click", () => {
   addDataToArray();
   exportData();
 });
-
 
 /************ Setup Model ***********/
 function initBoids() {
@@ -220,7 +218,7 @@ function chaseAmbush(predator){
     if (distance(boid, predator) < ambushRangepredator && !predatorIsClose) { 
       predatorIsClose = true;
       boidInRange = true;
-      ambushRangepredator = 0; // disable the burst for 3 seconds
+      ambushRangepredator = 0; 
       setTimeout(() => {
         predatorIsClose = false;
       }, burstTime); // 1-second burst
@@ -233,8 +231,8 @@ function chaseAmbush(predator){
     }
   }
   
-  if (predatorIsClose) {
-    moveX = boid.x - predator.x;
+  if (predatorIsClose) { // If the predator is close to a boid, chase it
+    moveX = boid.x - predator.x; 
     moveY = boid.y - predator.y;
     predator.dx += moveX * chaseFactor;
     predator.dy += moveY * chaseFactor;
@@ -267,16 +265,15 @@ function chaseRandom(predator){
 
 // The predator will repeatedly move towards the closest boid
 function chaseClosest(predator){
-  const boid = predatorsClosestBoid(predator);
+  const closestBoid = predatorsClosestBoid(predator);
   const chaseFactor = 0.05; // Adjust velocity by this %
 
-  const moveX = boid.x - predator.x;
-  const moveY = boid.y - predator.y;
+  const moveX = closestBoid.x - predator.x;
+  const moveY = closestBoid.y - predator.y;
  
   predator.dx += moveX * chaseFactor;
   predator.dy += moveY * chaseFactor;
 }
-
 
 // ************ Simulation ***********/
 function nClosestBoids(boid, n) {
@@ -311,7 +308,6 @@ function sizeCanvas() {
 // Constrain a bird to within the window. If it gets too close to an edge,
 // nudge it back in and reverse its direction.
 function keepWithinBounds(bird) {
-  
   const margin = 50;
   const turnFactor = 5;
 
@@ -731,7 +727,6 @@ function resetSimulation () {
     energySpent: 0
   };
 }
-
 
 window.onload = () => {
   // Make sure the canvas always fills the whole window
